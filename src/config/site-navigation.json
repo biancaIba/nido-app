@@ -1,0 +1,30 @@
+{
+  "appName": "Nido",
+  "version": "0.1.0",
+  "navigation": {
+    "mainNav": [
+      {
+        "id": "home",
+        "label": "Página Principal",
+        "path": "/",
+        "icon": "Home",
+        "children": []
+      },
+      {
+        "id": "classrooms",
+        "label": "Salas",
+        "path": "/",
+        "icon": "School",
+        "children": []
+      }
+    ],
+    "userMenu": [
+      {
+        "id": "settings",
+        "label": "Configuración",
+        "path": "/settings",
+        "icon": "Settings"
+      }
+    ]
+  }
+}

@@ -31,7 +31,7 @@ const dmMono = DM_Mono({
 
 export const metadata: Metadata = {
   title: "Nido",
-  description: "", // TODO: add description
+  description: "App para jardines de infantes",
 };
 
 export default async function RootLayout({

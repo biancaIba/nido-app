@@ -1,20 +1,27 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { useAuth } from "@/hooks/custom";
 import { Button } from "@/components/ui";
 
-export default function Login() {
-  const { signInWithEmail, signInWithGoogle, loading, authError } = useAuth();
+export default function LoginPage() {
+  const { signInWithEmail, signInWithGoogle, user, loading, authError } =
+    useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace("/dashboard");
+    }
+  }, [user, loading, router]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -30,8 +37,16 @@ export default function Login() {
     }
   };
 
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50">
+        <p className="text-lg font-medium">Verificando sesión...</p>
+      </main>
+    );
+  }
+
   return (
-    <div className="flex flex-col">
+    <main className="flex flex-col">
       <div className="space-y-6">
         <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 sm:text-2xl dark:text-white text-center">
           Iniciar sesión
@@ -128,6 +143,6 @@ export default function Login() {
           </Link>
         </p>
       </div>
-    </div>
+    </main>
   );
 }

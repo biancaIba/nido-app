@@ -1,28 +1,29 @@
-import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
-import { getTokens } from "next-firebase-auth-edge";
+"use client";
 
-import { clientConfig, serverConfig } from "../config";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export default async function Home() {
-  const cookiesStore = await cookies();
+import { useAuth } from "@/hooks/custom";
 
-  const tokens = await getTokens(cookiesStore, {
-    apiKey: clientConfig.apiKey,
-    cookieName: serverConfig.cookieName,
-    cookieSignatureKeys: serverConfig.cookieSignatureKeys,
-    serviceAccount: serverConfig.serviceAccount,
-  });
+export default function RootGuardPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
-  if (!tokens) {
-    redirect("/login");
-  }
+  useEffect(() => {
+    if (!loading) {
+      if (user) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/login");
+      }
+    }
+  }, [user, loading, router]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-6 py-12 sm:px-12 md:px-24">
-      <h1 className="text-2xl mb-4 text-center sm:text-xl md:text-3xl">
-        Bienvenido a Nido
-      </h1>
+    <main className="flex min-h-screen items-center justify-center bg-gray-50">
+      <p className="text-lg font-medium text-blue-violet-600">
+        Verificando sesión...
+      </p>
     </main>
   );
 }

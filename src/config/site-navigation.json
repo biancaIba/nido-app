@@ -4,16 +4,16 @@
   "navigation": {
     "mainNav": [
       {
-        "id": "home",
+        "id": "dashboard",
         "label": "Página Principal",
-        "path": "/",
+        "path": "/dashboard",
         "icon": "Home",
         "children": []
       },
       {
         "id": "classrooms",
         "label": "Salas",
-        "path": "/",
+        "path": "/classrooms",
         "icon": "School",
         "children": []
       }

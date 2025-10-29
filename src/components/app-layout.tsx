@@ -57,17 +57,17 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Mobile top navigation for collapsed view */}
       {mounted && !isDesktop && (
         <div className="border-b border-shark-gray-200 bg-[#FEFCFB] dark:bg-shark-gray-900 sticky top-0 z-30">
-          <div className="flex h-16 items-center px-4">
+          <div className="flex h-20 items-center px-4">
             <Button
               variant="ghost"
               size="icon"
               className="md:hidden mr-2"
               onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-6 w-6" />
             </Button>
             <div className="flex-1 flex justify-center">
-              <h1 className="text-lg font-semibold">Nido</h1>
+              <h1 className="text-xl font-semibold">Nido</h1>
             </div>
             <div className="w-10"></div> {/* Spacer for balance */}
           </div>
@@ -100,10 +100,10 @@ export function AppLayout({ children }: AppLayoutProps) {
 
         {/* Main content area */}
         <div className="flex flex-col flex-1 overflow-auto w-full bg-subtle-gradient">
-          <main className="flex-1 h-full min-h-0 overflow-y-auto m-10 flex items-center justify-center">
+          <main className="flex-1 h-full min-h-0 overflow-y-auto flex items-center justify-center">
             <div className="w-full max-w-full">{children}</div>
           </main>
-          <Footer />
+          {isDesktop && <Footer />}
         </div>
       </div>
     </div>

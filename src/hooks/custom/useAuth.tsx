@@ -8,6 +8,7 @@ import {
   signInWithPopup,
   signOut,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   AuthError,
 } from "firebase/auth";
 import { auth } from "@/firebase";
@@ -18,6 +19,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   logOut: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<User | null>;
+  signUpWithEmail: (email: string, password: string) => Promise<User | null>;
   authError: string | null;
 }
 
@@ -80,6 +82,45 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const signUpWithEmail = async (
+    email: string,
+    password: string
+  ): Promise<User | null> => {
+    setAuthError(null);
+    setLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      // TODO: Aquí es un buen lugar para agregar el usuario a Firestore
+
+      return userCredential.user;
+    } catch (error) {
+      const firebaseError = error as AuthError;
+      console.error(
+        "Error signing up with Email/Password:",
+        firebaseError.message
+      );
+
+      let errorMessage =
+        "Error al crear la cuenta. Intente con otro email o contraseña más segura.";
+      if (firebaseError.code === "auth/email-already-in-use") {
+        errorMessage = "El email ya está registrado.";
+      } else if (firebaseError.code === "auth/invalid-email") {
+        errorMessage = "El formato del email no es válido.";
+      } else if (firebaseError.code === "auth/weak-password") {
+        errorMessage = "La contraseña debe tener al menos 6 caracteres.";
+      }
+      setAuthError(errorMessage);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logOut = async () => {
     setAuthError(null);
     await signOut(auth);
@@ -100,6 +141,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signInWithGoogle,
     logOut,
     signInWithEmail,
+    signUpWithEmail,
     authError,
   };
 

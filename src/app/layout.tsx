@@ -5,8 +5,7 @@ import { Inter, DM_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 
 import "@/app/globals.css";
-import { AuthProvider } from "@/hooks/custom";
-import { AppLayout } from "@/components/app-layout";
+import { AuthProvider } from "@/lib/hooks";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,9 +46,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${dmMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="light">
-          <AuthProvider>
-            <AppLayout>{children}</AppLayout>
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
       </body>
     </html>

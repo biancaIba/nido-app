@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { useAuth } from "@/hooks/custom";
+import { useAuth } from "@/lib/hooks";
 
 export default function RootGuardPage() {
   const { user, loading } = useAuth();
@@ -12,7 +12,7 @@ export default function RootGuardPage() {
   useEffect(() => {
     if (!loading) {
       if (user) {
-        router.replace("/dashboard");
+        router.replace("/teacher/dashboard");
       } else {
         router.replace("/login");
       }

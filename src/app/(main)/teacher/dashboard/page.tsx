@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Users, X } from "lucide-react";
 
-import { EventModal, StudentCard } from "@/components/features";
+import { Child, Classroom } from "@/lib/types";
+import { getClassrooms, getChildrenByClassroomId } from "@/lib/services";
+import { ChildCard, EventModal } from "@/components/features";
 import {
   Button,
   Select,
@@ -14,102 +17,73 @@ import {
 } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
-interface Student {
-  id: string;
-  name: string;
-  avatar: string;
-  lastEvent?: {
-    type: string;
-    time: string;
-    color: string;
-  };
-}
-
-// Mock data for students
-const MOCK_STUDENTS: Student[] = [
-  {
-    id: "1",
-    name: "Sofía García",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sofia",
-    lastEvent: { type: "Comida", time: "12:30", color: "#2e8b57" },
-  },
-  {
-    id: "2",
-    name: "Lucas Martínez",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Lucas",
-    lastEvent: { type: "Siesta", time: "14:00", color: "#8a2be2" },
-  },
-  {
-    id: "3",
-    name: "Valentina López",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Valentina",
-    lastEvent: { type: "Baño", time: "11:45", color: "#0066ff" },
-  },
-  {
-    id: "4",
-    name: "Mateo Rodríguez",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mateo",
-    lastEvent: { type: "Actividad", time: "10:30", color: "#ffc300" },
-  },
-  {
-    id: "5",
-    name: "Emma Fernández",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma",
-    lastEvent: { type: "Comida", time: "12:15", color: "#2e8b57" },
-  },
-  {
-    id: "6",
-    name: "Benjamín Torres",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Benjamin",
-    lastEvent: { type: "Siesta", time: "13:45", color: "#8a2be2" },
-  },
-  {
-    id: "7",
-    name: "Mía Sánchez",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mia",
-  },
-  {
-    id: "8",
-    name: "Santiago Díaz",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Santiago",
-    lastEvent: { type: "Baño", time: "15:20", color: "#0066ff" },
-  },
-  {
-    id: "9",
-    name: "Isabella Ruiz",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Isabella",
-    lastEvent: { type: "Actividad", time: "09:45", color: "#ffc300" },
-  },
-  {
-    id: "10",
-    name: "Thiago Moreno",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Thiago",
-    lastEvent: { type: "Comida", time: "12:00", color: "#2e8b57" },
-  },
-];
-
-export default function App() {
-  const [selectedRoom, setSelectedRoom] = useState("sala-2024-manana");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+export default function TeacherDashboard() {
   const [selectionMode, setSelectionMode] = useState(false);
-  const [selectedStudents, setSelectedStudents] = useState<Set<string>>(
+  const [selectedChildren, setSelectedChildren] = useState<Set<string>>(
     new Set()
   );
 
-  const handleStudentClick = (student: Student) => {
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+  const [children, setChildren] = useState<Child[]>([]);
+  const [selectedClassroom, setSelectedClassroom] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchClassrooms = async () => {
+      try {
+        setIsLoading(true);
+        const fetchedClassrooms = await getClassrooms();
+        setClassrooms(fetchedClassrooms);
+        if (fetchedClassrooms.length > 0) {
+          setSelectedClassroom(fetchedClassrooms[0].id);
+        }
+      } catch (error) {
+        setError("No se pudieron cargar las salas.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchClassrooms();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedClassroom) {
+      setChildren([]);
+      return;
+    }
+    const fetchChildren = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const fetchedChildren = await getChildrenByClassroomId(
+          selectedClassroom
+        );
+        setChildren(fetchedChildren);
+      } catch (error) {
+        setError("No se pudieron cargar los alumnos.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchChildren();
+  }, [selectedClassroom]);
+
+  const handleChildClick = (child: Child) => {
     if (selectionMode) {
       // Toggle selection in group mode
-      const newSelected = new Set(selectedStudents);
-      if (newSelected.has(student.id)) {
-        newSelected.delete(student.id);
+      const newSelected = new Set(selectedChildren);
+      if (newSelected.has(child.id)) {
+        newSelected.delete(child.id);
       } else {
-        newSelected.add(student.id);
+        newSelected.add(child.id);
       }
-      setSelectedStudents(newSelected);
+      setSelectedChildren(newSelected);
     } else {
       // Open modal for individual event
-      setSelectedStudent(student);
+      setSelectedChildren(new Set([child.id]));
       setIsModalOpen(true);
     }
   };
@@ -118,7 +92,7 @@ export default function App() {
     if (selectionMode) {
       // Cancel selection mode
       setSelectionMode(false);
-      setSelectedStudents(new Set());
+      setSelectedChildren(new Set());
     } else {
       // Start selection mode
       setSelectionMode(true);
@@ -126,39 +100,62 @@ export default function App() {
   };
 
   const handleGroupEventSubmit = () => {
-    if (selectedStudents.size === 0) {
+    if (selectedChildren.size === 0) {
       return;
     }
-    setSelectedStudent(null);
     setIsModalOpen(true);
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    if (!selectionMode) {
+      setSelectedChildren(new Set());
+    }
+  };
+
   const handleEventSubmit = () => {
-    if (selectionMode && selectedStudents.size > 0) {
+    if (selectionMode && selectedChildren.size > 0) {
       setSelectionMode(false);
-      setSelectedStudents(new Set());
+      setSelectedChildren(new Set());
     }
     setIsModalOpen(false);
   };
+
+  // Get selected children objects
+  const selectedChildrenData = children.filter((child) =>
+    selectedChildren.has(child.id)
+  );
+
+  if (isLoading && classrooms.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-shark-gray-500">Cargando...</p>
+      </div>
+    );
+  }
+
+  if (error && classrooms.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <>
       {/* Classroom Selector */}
       <div className="sticky top-0 z-40 bg-white border-b px-4 py-3 shadow-sm">
-        <Select value={selectedRoom} onValueChange={setSelectedRoom}>
+        <Select value={selectedClassroom} onValueChange={setSelectedClassroom}>
           <SelectTrigger className="w-full h-12">
             <SelectValue placeholder="Seleccionar sala" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="sala-2024-manana">
-              Sala 2024 - Turno Mañana
-            </SelectItem>
-            <SelectItem value="sala-2024-tarde">
-              Sala 2024 - Turno Tarde
-            </SelectItem>
-            <SelectItem value="sala-2023-manana">
-              Sala 2023 - Turno Mañana
-            </SelectItem>
+            {classrooms.map((room) => (
+              <SelectItem key={room.id} value={room.id}>
+                {room.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -187,16 +184,16 @@ export default function App() {
         </Button>
       </div>
 
-      {/* Student Grid */}
+      {/* Child Grid */}
       <div className={cn("px-4 py-4", selectionMode && "mb-30")}>
-        <div className="grid grid-cols-2 gap-4">
-          {MOCK_STUDENTS.map((student) => (
-            <StudentCard
-              key={student.id}
-              {...student}
-              isSelected={selectedStudents.has(student.id)}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {children.map((child) => (
+            <ChildCard
+              key={child.id}
+              child={child}
+              isSelected={selectedChildren.has(child.id)}
               selectionMode={selectionMode}
-              onClick={() => handleStudentClick(student)}
+              onClick={() => handleChildClick(child)}
             />
           ))}
         </div>
@@ -207,15 +204,15 @@ export default function App() {
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-shark-gray-900">
-              {selectedStudents.size} de {MOCK_STUDENTS.length} seleccionados
+              {selectedChildren.size} de {children.length} seleccionados
             </span>
           </div>
           <Button
             onClick={handleGroupEventSubmit}
-            disabled={selectedStudents.size === 0}
+            disabled={selectedChildren.size === 0}
             className="w-full h-12 bg-blue-violet-500 hover:bg-blue-violet-500/90 text-white"
           >
-            Cargar Evento para {selectedStudents.size} Alumnos
+            Cargar Evento para {selectedChildren.size} Alumnos
           </Button>
         </div>
       )}
@@ -223,12 +220,8 @@ export default function App() {
       {/* Event Modal */}
       <EventModal
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedStudent(null);
-        }}
-        studentName={selectedStudent?.name}
-        studentCount={selectionMode ? selectedStudents.size : undefined}
+        onClose={handleCloseModal}
+        childrenData={selectedChildrenData}
         onSubmit={handleEventSubmit}
       />
     </>

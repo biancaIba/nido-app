@@ -1,4 +1,4 @@
-import { BaseModel } from "@/lib/types";
+import { BaseModel, LastEventSummary } from "@/lib/types";
 
 export interface Child extends BaseModel {
   firstName: string;
@@ -6,4 +6,5 @@ export interface Child extends BaseModel {
   avatar?: string;
   classroomId: string; // ID of the Classroom
   parentIds: string[]; // Array of User IDs (with role 'parent')
+  lastEvent?: LastEventSummary | null; // Summary of the last event
 }

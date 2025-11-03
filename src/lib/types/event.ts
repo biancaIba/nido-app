@@ -36,3 +36,9 @@ export interface Event extends BaseModel {
   sleepDetails?: SleepDetails;
   diaperDetails?: DiaperDetails;
 }
+
+export interface LastEventSummary {
+  type: EventType;
+  eventTime: Timestamp;
+  description: string;
+}

@@ -1,15 +1,16 @@
 import {
   collection,
-  addDoc,
   getDocs,
   query,
   where,
   orderBy,
   Timestamp,
+  doc,
+  writeBatch,
 } from "firebase/firestore";
 
 import { db } from "@/config/firebase";
-import { Event } from "@/lib/types";
+import { Event, LastEventSummary } from "@/lib/types";
 
 const eventCollection = collection(db, "events");
 
@@ -20,18 +21,36 @@ export const createEvent = async (
   >,
   userId: string
 ) => {
+  const batch = writeBatch(db);
+
+  const newEventRef = doc(collection(db, "events"));
+  const eventDocData = {
+    ...eventData,
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
+    createdBy: userId,
+    updatedBy: userId,
+  };
+  batch.set(newEventRef, eventDocData);
+
+  const childRef = doc(db, "children", eventData.childId);
+  const eventSummary: LastEventSummary = {
+    type: eventData.type,
+    eventTime: eventData.eventTime,
+    description: eventData.description,
+  };
+
+  batch.update(childRef, {
+    lastEvent: eventSummary,
+    updatedAt: Timestamp.now(),
+    updatedBy: userId,
+  });
+
   try {
-    const docData = {
-      ...eventData,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-      createdBy: userId,
-      updatedBy: userId,
-    };
-    const docRef = await addDoc(eventCollection, docData);
-    return docRef.id;
+    await batch.commit();
+    return newEventRef.id;
   } catch (error) {
-    console.error("[event.service] Error creating event: ", error);
+    console.error("[event.service] Error committing event batch: ", error);
     throw new Error("No se pudo registrar el evento.");
   }
 };

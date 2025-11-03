@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Moon, Apple, Toilet, AlertCircle, Palette, Pill } from "lucide-react";
 
+import { Child } from "@/lib/types";
 import {
   Button,
   Label,
@@ -15,8 +16,7 @@ import {
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
-  studentName?: string;
-  studentCount?: number;
+  children: Child[];
   onSubmit: (event: EventData) => void;
 }
 
@@ -75,8 +75,7 @@ const EVENT_CATEGORIES = [
 export function EventModal({
   isOpen,
   onClose,
-  studentName,
-  studentCount,
+  children,
   onSubmit,
 }: EventModalProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -120,9 +119,9 @@ export function EventModal({
       <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>
-            {studentCount
-              ? `Registrar Evento para ${studentCount} Alumnos`
-              : `Registrar Evento para: ${studentName}`}
+            {children.length > 1
+              ? `Registrar Evento para ${children.length} Alumnos`
+              : `Registrar Evento para: ${children[0].firstName}`}
           </SheetTitle>
         </SheetHeader>
 

@@ -1,7 +1,5 @@
-import { Base } from "@/lib/types";
+import { BaseModel } from "@/lib/types";
 
-export interface Classroom extends Base {
+export interface Classroom extends BaseModel {
   name: string;
-  teacherIds: string[];
-  year: number;
 }

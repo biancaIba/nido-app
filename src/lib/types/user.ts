@@ -1,13 +1,17 @@
-import { Base } from "@/lib/types";
+import { BaseModel } from "@/lib/types";
 
-export interface User extends Base {
-  name: string;
-  surname: string;
+export type UserRole = "admin" | "teacher" | "parent";
+
+export interface User extends BaseModel {
   email: string;
-  role: Role;
-}
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  photoUrl?: string;
 
-interface Role {
-  id: string;
-  name: "teacher" | "student" | "family" | "admin";
+  // For 'teacher': ID of the classroom they manage
+  classroomId?: string;
+
+  // For 'parent': IDs of the children associated
+  childrenIds?: string[];
 }

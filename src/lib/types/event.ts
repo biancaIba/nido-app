@@ -1,13 +1,38 @@
-import { Base } from "@/lib/types";
+import { Timestamp } from "firebase/firestore";
+import { BaseModel } from "@/lib/types";
 
-export interface Event extends Base {
-  childId: string;
-  type: EventType;
+export type EventType =
+  | "food"
+  | "sleep"
+  | "diaper"
+  | "activity"
+  | "incident"
+  | "general_note";
+
+export interface FoodDetails {
+  mealType: "breakfast" | "lunch" | "snack";
   description: string;
-  date: Date;
 }
 
-interface EventType {
-  id: string;
-  name: "meal" | "nap" | "diaperChange" | "activity" | "note";
+export interface SleepDetails {
+  startTime: Timestamp;
+  endTime?: Timestamp;
+}
+
+export interface DiaperDetails {
+  type: "pee" | "poo" | "both";
+  observation?: string;
+}
+
+export interface Event extends BaseModel {
+  childId: string;
+  teacherId: string;
+  eventTime: Timestamp;
+  type: EventType;
+  description: string;
+
+  // Optional details based on event type
+  foodDetails?: FoodDetails;
+  sleepDetails?: SleepDetails;
+  diaperDetails?: DiaperDetails;
 }

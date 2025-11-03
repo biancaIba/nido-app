@@ -7,11 +7,10 @@ import {
   Badge,
   Card,
 } from "@/components/ui";
+import { Child } from "@/lib/types";
 
-interface StudentCardProps {
-  id: string;
-  name: string;
-  avatar: string;
+interface ChildCardProps {
+  child: Child;
   lastEvent?: {
     type: string;
     time: string;
@@ -31,14 +30,13 @@ const EVENT_ICONS: { [key: string]: string } = {
   Medicamento: "💊",
 };
 
-export function StudentCard({
-  name,
-  avatar,
+export function ChildCard({
+  child,
   lastEvent,
   isSelected,
   selectionMode,
   onClick,
-}: StudentCardProps) {
+}: ChildCardProps) {
   return (
     <Card
       className={`relative overflow-hidden cursor-pointer transition-all hover:shadow-md ${
@@ -54,9 +52,9 @@ export function StudentCard({
 
       <div className="flex flex-col items-center p-4 space-y-3">
         <Avatar className="h-20 w-20 border-4 border-white shadow-md">
-          <AvatarImage src={avatar} alt={name} />
+          <AvatarImage src={child.avatar} alt={child.firstName} />
           <AvatarFallback className="bg-blue-violet-500 text-white">
-            {name
+            {child.firstName
               .split(" ")
               .map((n) => n[0])
               .join("")
@@ -65,7 +63,7 @@ export function StudentCard({
         </Avatar>
 
         <div className="text-center w-full">
-          <p className="text-shark-gray-900 truncate px-1">{name}</p>
+          <p className="text-shark-gray-900 truncate px-1">{child.firstName}</p>
         </div>
 
         {lastEvent && (

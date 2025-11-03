@@ -1,10 +1,11 @@
+import { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Inter, DM_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 
 import "@/app/globals.css";
-import { AppLayout } from "@/components/app-layout";
+import { AuthProvider } from "@/lib/hooks";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,13 +32,13 @@ const dmMono = DM_Mono({
 
 export const metadata: Metadata = {
   title: "Nido",
-  description: "", // TODO: add description
+  description: "App para jardines de infantes",
 };
 
 export default async function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -45,7 +46,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${dmMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="light">
-          <AppLayout>{children}</AppLayout>
+          <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -16,7 +16,7 @@ import {
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
-  children: Child[];
+  childrenData: Child[];
   onSubmit: (event: EventData) => void;
 }
 
@@ -75,7 +75,7 @@ const EVENT_CATEGORIES = [
 export function EventModal({
   isOpen,
   onClose,
-  children,
+  childrenData,
   onSubmit,
 }: EventModalProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -119,9 +119,9 @@ export function EventModal({
       <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>
-            {children.length > 1
-              ? `Registrar Evento para ${children.length} Alumnos`
-              : `Registrar Evento para: ${children[0].firstName}`}
+            {childrenData.length > 1
+              ? `Registrar Evento para ${childrenData.length} Alumnos`
+              : `Registrar Evento para: ${childrenData[0]?.firstName}`}
           </SheetTitle>
         </SheetHeader>
 

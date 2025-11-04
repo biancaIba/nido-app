@@ -1,7 +1,14 @@
 import { useState } from "react";
+import { Timestamp } from "firebase/firestore";
 import { Moon, Apple, Toilet, AlertCircle, Palette, Pill } from "lucide-react";
 
-import { Child } from "@/lib/types";
+import {
+  Child,
+  FoodDetails,
+  SleepDetails,
+  DiaperDetails,
+  NoteDetails,
+} from "@/lib/types";
 import {
   Button,
   Label,
@@ -17,14 +24,20 @@ interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
   childrenData: Child[];
-  onSubmit: (event: EventData) => void;
+  onSubmit: (eventData: EventFormData) => Promise<void>;
 }
 
-export interface EventData {
-  category: string;
-  detail?: string;
-  time: string;
-  comment: string;
+export interface EventFormData {
+  category:
+    | "food"
+    | "sleep"
+    | "diaper"
+    | "activity"
+    | "incident"
+    | "general_note";
+  details: FoodDetails | SleepDetails | DiaperDetails | NoteDetails;
+  eventTime: Timestamp;
+  comment?: string;
 }
 
 const EVENT_CATEGORIES = [
@@ -87,27 +100,97 @@ export function EventModal({
     })
   );
   const [comment, setComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedCategory) return;
 
-    onSubmit({
-      category: selectedCategory,
-      detail: selectedDetail || undefined,
-      time,
-      comment,
-    });
+    setIsSubmitting(true);
 
-    // Reset form
-    setSelectedCategory(null);
-    setSelectedDetail(null);
-    setComment("");
-    setTime(
-      new Date().toLocaleTimeString("es-ES", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    );
+    try {
+      // Convert time string to Timestamp
+      const [hours, minutes] = time.split(":").map(Number);
+      const eventDate = new Date();
+      eventDate.setHours(hours, minutes, 0, 0);
+      const eventTimestamp = Timestamp.fromDate(eventDate);
+
+      // Build details based on category
+      let details: FoodDetails | SleepDetails | DiaperDetails | NoteDetails;
+
+      switch (selectedCategory) {
+        case "alimentacion":
+          details = {
+            mealType: (selectedDetail?.toLowerCase() === "leche"
+              ? "breakfast"
+              : selectedDetail?.toLowerCase() === "sólido"
+              ? "lunch"
+              : "snack") as FoodDetails["mealType"],
+            description: comment || undefined,
+          } as FoodDetails;
+          break;
+        case "siesta":
+          details = {
+            startTime: eventTimestamp,
+            endTime: selectedDetail === "Fin" ? eventTimestamp : undefined,
+          } as SleepDetails;
+          break;
+        case "higiene":
+          details = {
+            type: (selectedDetail?.includes("limpio")
+              ? "pee"
+              : selectedDetail?.includes("sucio")
+              ? "poo"
+              : "both") as DiaperDetails["type"],
+            observation: comment || undefined,
+          } as DiaperDetails;
+          break;
+        case "actividad":
+        case "incidente":
+        case "medicamento":
+          details = {
+            description: selectedDetail
+              ? `${selectedDetail}${comment ? `: ${comment}` : ""}`
+              : comment,
+          } as NoteDetails;
+          break;
+        default:
+          details = { description: comment } as NoteDetails;
+      }
+
+      // Map UI categories to Event type categories
+      const categoryMap: Record<string, EventFormData["category"]> = {
+        siesta: "sleep",
+        alimentacion: "food",
+        higiene: "diaper",
+        incidente: "incident",
+        actividad: "activity",
+        medicamento: "general_note",
+      };
+
+      const eventData: EventFormData = {
+        category: categoryMap[selectedCategory] || "general_note",
+        details,
+        eventTime: eventTimestamp,
+        comment: comment || undefined,
+      };
+
+      await onSubmit(eventData);
+
+      // Reset form
+      setSelectedCategory(null);
+      setSelectedDetail(null);
+      setComment("");
+      setTime(
+        new Date().toLocaleTimeString("es-ES", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      );
+    } catch (error) {
+      console.error("Error submitting event:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const selectedCategoryData = EVENT_CATEGORIES.find(
@@ -224,10 +307,10 @@ export function EventModal({
           {/* Submit Button */}
           <Button
             onClick={handleSubmit}
-            disabled={!selectedCategory}
-            className="w-full h-12 bg-blue-violet-500 hover:bg-blue-violet-500/90 text-white"
+            disabled={!selectedCategory || isSubmitting}
+            className="w-full h-12 bg-blue-violet-500 hover:bg-blue-violet-500/90 text-white disabled:opacity-50"
           >
-            Registrar Evento
+            {isSubmitting ? "Registrando..." : "Registrar Evento"}
           </Button>
         </div>
       </SheetContent>

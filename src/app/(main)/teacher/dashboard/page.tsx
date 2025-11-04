@@ -4,9 +4,15 @@
 import { useEffect, useState } from "react";
 import { Users, X } from "lucide-react";
 
+import { useAuth } from "@/lib/hooks";
+import { cn } from "@/lib/utils";
 import { Child, Classroom } from "@/lib/types";
-import { getClassrooms, getChildrenByClassroomId } from "@/lib/services";
-import { ChildCard, EventModal } from "@/components/features";
+import {
+  getClassrooms,
+  getChildrenByClassroomId,
+  createEvents,
+} from "@/lib/services";
+import { ChildCard, EventModal, EventFormData } from "@/components/features";
 import {
   Button,
   Select,
@@ -15,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui";
-import { cn } from "@/lib/utils";
 
 export default function TeacherDashboard() {
   const [selectionMode, setSelectionMode] = useState(false);
@@ -30,6 +35,8 @@ export default function TeacherDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchClassrooms = async () => {
@@ -113,12 +120,54 @@ export default function TeacherDashboard() {
     }
   };
 
-  const handleEventSubmit = () => {
-    if (selectionMode && selectedChildren.size > 0) {
-      setSelectionMode(false);
-      setSelectedChildren(new Set());
+  const handleEventSubmit = async (eventData: EventFormData) => {
+    if (!user?.uid) {
+      return;
     }
-    setIsModalOpen(false);
+
+    if (selectedChildren.size === 0) {
+      return;
+    }
+
+    try {
+      // Convert the form data to the service payload
+      const payload = {
+        category: eventData.category,
+        details: eventData.details,
+        eventTime: eventData.eventTime,
+      };
+
+      // Call the service with the array of child IDs
+      const result = await createEvents(
+        payload,
+        Array.from(selectedChildren),
+        user.uid
+      );
+
+      if (result.success) {
+        // TODO: Show success toast
+
+        // Reset state
+        if (selectionMode) {
+          setSelectionMode(false);
+        }
+        setSelectedChildren(new Set());
+        setIsModalOpen(false);
+
+        // Refresh the children list to show updated lastEvent
+        if (selectedClassroom) {
+          const fetchedChildren = await getChildrenByClassroomId(
+            selectedClassroom
+          );
+          setChildren(fetchedChildren);
+        }
+      } else {
+        // TODO: Show error toast
+      }
+    } catch (error) {
+      console.error("Error creating event:", error);
+      // TODO: Show error toast
+    }
   };
 
   // Get selected children objects

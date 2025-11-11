@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Loader2, FileText } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks";
 import { Child, Event } from "@/lib/types";
 import { getChildById, getEventsByChildId } from "@/lib/services";
 import { EventTimelineItem } from "@/components/features";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function ParentDashboard() {
   const { user } = useAuth();
@@ -16,26 +19,23 @@ export default function ParentDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || !user.childrenIds || user.childrenIds.length === 0) {
-      // Si no hay usuario o no tiene hijos asignados, no hacemos nada.
-      // Podríamos mostrar un mensaje aquí.
+    if (!user) return;
+
+    if (!user.childrenIds || user.childrenIds.length === 0) {
       setIsLoading(false);
       return;
     }
 
-    const childId = user.childrenIds[0]; // Usamos el primer hijo por ahora
+    const childId = user.childrenIds[0];
 
     const fetchData = async () => {
       try {
         setIsLoading(true);
         setError(null);
-
-        // Obtenemos los datos en paralelo
         const [childData, eventsData] = await Promise.all([
           getChildById(childId),
           getEventsByChildId(childId),
         ]);
-
         setChild(childData);
         setEvents(eventsData);
       } catch (err) {
@@ -51,9 +51,12 @@ export default function ParentDashboard() {
     fetchData();
   }, [user]);
 
+  const today = format(new Date(), "EEEE, d 'de' MMMM", { locale: es });
+
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-shark-gray-400" />
         <p className="text-shark-gray-500">Cargando historial...</p>
       </div>
     );
@@ -61,7 +64,7 @@ export default function ParentDashboard() {
 
   if (error) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-full items-center justify-center p-8 text-center">
         <p className="text-red-500">{error}</p>
       </div>
     );
@@ -69,46 +72,59 @@ export default function ParentDashboard() {
 
   if (!child) {
     return (
-      <div className="flex h-screen items-center justify-center p-4 text-center">
-        <p className="text-shark-gray-500">
-          No tienes alumnos asignados. Contacta al administrador.
+      <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
+        <h2 className="text-xl font-semibold">No hay alumnos asignados</h2>
+        <p className="max-w-md text-shark-gray-500">
+          Parece que tu cuenta no está vinculada a ningún alumno. Por favor,
+          contacta con la administración del centro para que te asignen a tu
+          hijo/a.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="p-4">
-      <div className="flex items-center space-x-2 justify-center">
-        <Avatar key={child.id} className="bg-blue-violet-500 text-white">
-          <AvatarImage src={child.avatarUrl} />
-          <AvatarFallback>
-            {child.firstName
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .toUpperCase()}
+    <main className="container mx-auto max-w-3xl p-6 md:p-8">
+      {/* Encabezado */}
+      <header className="mb-8 flex items-center gap-4">
+        <Avatar className="h-16 w-16 border-2 border-white shadow-sm">
+          <AvatarImage src={child.avatarUrl} alt={child.firstName} />
+          <AvatarFallback className="text-2xl">
+            {child.firstName.charAt(0)}
+            {child.lastName.charAt(0)}
           </AvatarFallback>
         </Avatar>
-        <span className="text-lg text-gray-600 font-medium">
-          {child.firstName} {child.lastName}
-        </span>
-      </div>
-      <p className="mb-4 text-shark-gray-500">Actividad del día de hoy</p>
+        <div>
+          <h1 className="text-3xl font-bold text-shark-gray-900">
+            {child.firstName} {child.lastName}
+          </h1>
+          <p className="text-base capitalize text-shark-gray-500">{today}</p>
+        </div>
+      </header>
 
-      <div className="divide-y divide-gray-200">
+      {/* Línea de tiempo */}
+      <div className="space-y-2">
         {events.length > 0 ? (
-          events.map((event) => (
-            <EventTimelineItem key={event.id} event={event} />
+          events.map((event, index) => (
+            <EventTimelineItem
+              key={event.id}
+              event={event}
+              isLast={index === events.length - 1}
+            />
           ))
         ) : (
-          <div className="pt-8 text-center">
-            <p className="text-shark-gray-500">
-              Aún no hay eventos registrados hoy.
+          <div className="flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-gray-200 p-12 text-center">
+            <FileText className="h-12 w-12 text-shark-gray-300" />
+            <h3 className="text-lg font-semibold text-shark-gray-700">
+              No hay eventos hoy
+            </h3>
+            <p className="text-sm text-shark-gray-500">
+              Aún no se ha registrado ninguna actividad para {child.firstName}{" "}
+              en el día de hoy.
             </p>
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }

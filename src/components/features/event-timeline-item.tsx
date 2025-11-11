@@ -2,9 +2,11 @@ import { Timestamp } from "firebase/firestore";
 
 import { EVENTS_CONFIG } from "@/config";
 import { Event } from "@/lib/types";
+import { Card } from "@/components/ui/card";
 
 interface EventTimelineItemProps {
   event: Event;
+  isLast: boolean;
 }
 
 function formatTime(timestamp: Timestamp): string {
@@ -39,30 +41,51 @@ function getEventDescription(event: Event): string {
   }
 }
 
-export function EventTimelineItem({ event }: EventTimelineItemProps) {
+export function EventTimelineItem({ event, isLast }: EventTimelineItemProps) {
   const config = EVENTS_CONFIG[event.category];
   const Icon = config.icon;
   const description = getEventDescription(event);
 
   return (
-    <div className="flex items-center space-x-4 py-4">
-      {/* Icon */}
-      <div
-        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full"
-        style={{ backgroundColor: `${config.color}20` }}
-      >
-        <Icon className="h-6 w-6" style={{ color: config.color }} />
+    <div className="flex gap-x-4 p-2 items-center">
+      {/* Columna de la línea de tiempo */}
+      <div className="relative flex justify-center items-center">
+        {/* Línea vertical */}
+        {!isLast && (
+          <div className="absolute top-12 left-1/2 h-full w-0.5 bg-gray-200"></div>
+        )}
+        <div
+          className="h-11 w-11 rounded-full flex items-center justify-center shadow-md"
+          style={{
+            backgroundColor: `${config.color}15`,
+            borderColor: config.color,
+            borderWidth: "2px",
+          }}
+        >
+          <Icon className="h-5 w-5" style={{ color: config.color }} />
+        </div>
       </div>
 
-      {/* Details */}
-      <div className="flex-grow">
-        <div className="flex items-center justify-between">
-          <p className="font-bold text-shark-gray-900">{config.label}</p>
+      {/* Tarjeta del evento */}
+      <div className="flex-1">
+        <div className="flex justify-between">
+          <span
+            className="flex items-center text-shark-gray-800 font-semibold"
+            style={{
+              color: `${config.color}`,
+            }}
+          >
+            {config.label}
+          </span>
           <p className="text-sm text-shark-gray-500">
             {formatTime(event.eventTime)}
           </p>
         </div>
-        <p className="mt-1 text-shark-gray-600">{description}</p>
+        {description && description !== "" && (
+          <Card className="px-4 py-2 mt-2 bg-shark-gray-50 border-0 shadow-sm mb-3">
+            <span className="text-shark-gray-600">{description}</span>
+          </Card>
+        )}
       </div>
     </div>
   );

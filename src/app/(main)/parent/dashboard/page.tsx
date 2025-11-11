@@ -12,8 +12,12 @@ import { es } from "date-fns/locale";
 import { Loader2, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks";
-import { Child, Event } from "@/lib/types";
-import { getChildById, getEventsByChildId } from "@/lib/services";
+import { Child, Classroom, Event } from "@/lib/types";
+import {
+  getChildById,
+  getClassroomById,
+  getEventsByChildId,
+} from "@/lib/services";
 import { EventTimelineItem } from "@/components/features";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -21,6 +25,7 @@ import { Button } from "@/components/ui/button";
 export default function ParentDashboard() {
   const { user } = useAuth();
   const [child, setChild] = useState<Child | null>(null);
+  const [classroom, setClassroom] = useState<Classroom | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,15 +44,23 @@ export default function ParentDashboard() {
       try {
         setIsLoading(true);
         setError(null);
-        // Solo obtenemos los datos del niño la primera vez.
-        // Los eventos se recargan cada vez que cambia la fecha.
-        const [childData, eventsData] = await Promise.all([
-          child ? Promise.resolve(child) : getChildById(childId),
-          getEventsByChildId(childId, selectedDate),
-        ]);
 
+        // 1. Obtenemos los datos del niño
+        const childData = child || (await getChildById(childId));
         if (!child) setChild(childData);
-        setEvents(eventsData);
+
+        if (childData) {
+          // 2. Con el ID de la sala, obtenemos los datos de la sala y los eventos en paralelo
+          const [classroomData, eventsData] = await Promise.all([
+            classroom || getClassroomById(childData.classroomId),
+            getEventsByChildId(childId, selectedDate),
+          ]);
+          if (!classroom) setClassroom(classroomData);
+          setEvents(eventsData);
+        } else {
+          // Si no hay datos del niño, no podemos buscar nada más
+          setEvents([]);
+        }
       } catch (err) {
         setError(
           err instanceof Error
@@ -62,7 +75,7 @@ export default function ParentDashboard() {
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, selectedDate]); // Se ejecuta cuando cambia el usuario o la fecha
+  }, [user, selectedDate]);
 
   const handlePreviousDay = () => {
     setSelectedDate((currentDate) => addDays(currentDate, -1));
@@ -114,7 +127,7 @@ export default function ParentDashboard() {
               {child.firstName} {child.lastName}
             </h1>
             <p className="text-base capitalize text-shark-gray-500">
-              Historial de eventos
+              {classroom?.name || "Historial de eventos"}
             </p>
           </div>
         </header>

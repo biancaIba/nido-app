@@ -47,7 +47,7 @@ export function EventTimelineItem({ event, isLast }: EventTimelineItemProps) {
   const description = getEventDescription(event);
 
   return (
-    <div className="flex gap-x-4 p-3 items-center">
+    <div className="flex gap-x-4 p-4 items-center">
       {/* Columna de la línea de tiempo */}
       <div className="relative flex justify-center items-center">
         {/* Línea vertical */}

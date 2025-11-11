@@ -12,7 +12,7 @@ import {
   getChildrenByClassroomId,
   createEvents,
 } from "@/lib/services";
-import { ChildCard, EventModal } from "@/components/features";
+import { ChildCard, EventFormPayload, EventModal } from "@/components/features";
 import {
   Button,
   Select,
@@ -120,7 +120,7 @@ export default function TeacherDashboard() {
     }
   };
 
-  const handleEventSubmit = async (eventData) => {
+  const handleEventSubmit = async (eventData: EventFormPayload) => {
     if (!user?.uid) {
       return;
     }

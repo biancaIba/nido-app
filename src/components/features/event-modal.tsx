@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Timestamp } from "firebase/firestore";
+import { ArrowLeft } from "lucide-react";
 
 import { EVENTS_CONFIG } from "@/config";
 import {
@@ -22,6 +23,9 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
 } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -88,15 +92,19 @@ export function EventModal({
   childrenData,
   onSubmit,
 }: EventModalProps) {
+  // This state now controls which step we are on.
+  // null = Step 1 (Category Selection)
+  // EventCategory = Step 2 (Details Form)
   const [selectedCategory, setSelectedCategory] =
     useState<EventCategory | null>(null);
+
   const [formData, setFormData] = useState<Partial<FormData>>({
     eventTime: getLocalTime(),
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const resetForm = () => {
-    setSelectedCategory(null);
+    setSelectedCategory(null); // Go back to step 1
     setFormData({ eventTime: getLocalTime() });
     setIsSubmitting(false);
   };
@@ -104,6 +112,13 @@ export function EventModal({
   const handleClose = () => {
     resetForm();
     onClose();
+  };
+
+  const handleCategorySelect = (category: EventCategory) => {
+    // Clear form details but keep the time, then move to step 2
+    const { eventTime } = formData;
+    setFormData({ eventTime });
+    setSelectedCategory(category);
   };
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -131,21 +146,13 @@ export function EventModal({
           };
           break;
         case "sleep":
-          // The main eventTime is the startTime of the nap.
-          const sleepDetails: SleepDetails = {
-            startTime: eventTimestamp,
-          };
-
-          // Only add endTime to the object if it has a value.
-          // This prevents sending 'undefined' to Firestore.
+          const sleepDetails: SleepDetails = { startTime: eventTimestamp };
           if (formData.endTime) {
             sleepDetails.endTime = timeStringToTimestamp(formData.endTime);
           }
-
           payload = {
             category: "sleep",
-            // The eventTime is when it's logged, which we can make now.
-            eventTime: Timestamp.now(),
+            eventTime: Timestamp.now(), // Log time is always 'now'
             details: sleepDetails,
           };
           break;
@@ -192,7 +199,10 @@ export function EventModal({
     }
   };
 
+  // --- Sub-render functions for each step ---
+
   const renderCategoryForm = () => {
+    // This function remains largely the same
     if (!selectedCategory) return null;
     const config = EVENTS_CONFIG[selectedCategory];
 
@@ -244,7 +254,6 @@ export function EventModal({
         if (selectedCategory === "sleep") {
           return (
             <div className="space-y-4">
-              {/* The main 'Hora del Evento' now serves as the start time */}
               <Label htmlFor="endTime">Hora de Fin (Opcional)</Label>
               <Input
                 id="endTime"
@@ -285,64 +294,109 @@ export function EventModal({
     }
   };
 
-  // Determine the label for the main time input based on the category
-  const timeInputLabel =
-    selectedCategory === "sleep" ? "Hora de Inicio" : "Hora del Evento";
+  const renderConfirmationHeader = () => {
+    if (!selectedCategory) return null;
+    const config = EVENTS_CONFIG[selectedCategory];
+    const Icon = config.icon;
+
+    return (
+      <div className="p-3 bg-gray-50 rounded-lg space-y-3">
+        {/* --- Avatars --- */}
+        <div className="flex items-center space-x-2">
+          <div className="flex -space-x-2 overflow-hidden">
+            {childrenData.slice(0, 10).map((child) => (
+              <Avatar key={child.id} className="bg-blue-violet-500 text-white">
+                <AvatarImage src={child.avatarUrl} />
+                <AvatarFallback>
+                  {child.firstName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            ))}
+          </div>
+          {childrenData.length > 3 && (
+            <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 ring-2 ring-white">
+              +{childrenData.length - 3}
+            </div>
+          )}
+          <span className="text-sm text-gray-600 font-medium">
+            {childrenData.length > 1
+              ? `${childrenData.length} alumnos`
+              : `${childrenData[0]?.firstName} ${childrenData[0]?.lastName}`}
+          </span>
+        </div>
+        {/* --- Category --- */}
+        <div className="flex items-center space-x-2">
+          <div
+            className="h-8 w-8 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: `${config.color}20` }}
+          >
+            <Icon className="h-5 w-5" style={{ color: config.color }} />
+          </div>
+          <span className="text-sm font-medium text-gray-800">
+            {config.label}
+          </span>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
+      <SheetContent side="bottom" className="h-[90vh] overflow-y-auto p-4">
         <SheetHeader>
-          <SheetTitle>
-            {childrenData.length > 1
-              ? `Evento para ${childrenData.length} Alumnos`
-              : `Evento para: ${childrenData[0]?.firstName}`}
+          {/* --- Back Button for Step 2 --- */}
+          {selectedCategory && (
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className="absolute left-4 top-4 text-gray-500 hover:text-gray-800 transition-colors"
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </button>
+          )}
+          <SheetTitle className="text-center">
+            {selectedCategory ? "Detalles" : "Categoría"}
           </SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-6">
-          <div>
-            <div className="grid grid-cols-2 gap-3">
+        {/* --- Main Content: Switches between Step 1 and Step 2 --- */}
+        <div className="py-6">
+          {!selectedCategory ? (
+            // --- STEP 1: Category Selection ---
+            <div className="grid grid-cols-2 gap-4">
               {eventCategories.map((category) => {
                 const Icon = category.icon;
-                const isSelected = selectedCategory === category.id;
                 return (
                   <button
                     key={category.id}
-                    onClick={() => {
-                      // Reset specific form fields when changing category
-                      const { eventTime } = formData;
-                      setFormData({ eventTime });
-                      setSelectedCategory(category.id);
-                    }}
-                    className={cn(
-                      "flex flex-col items-center justify-center p-10 rounded-xl border-2 transition-all",
-                      isSelected
-                        ? "border-current shadow-lg scale-105"
-                        : "border-gray-200 hover:border-gray-300"
-                    )}
+                    onClick={() => handleCategorySelect(category.id)}
+                    className="flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all aspect-square hover:border-gray-300"
                     style={{
-                      color: isSelected ? category.color : "#6b7280",
-                      backgroundColor: isSelected
-                        ? `${category.color}1A`
-                        : "white",
+                      color: category.color,
+                      backgroundColor: `${category.color}1A`,
                     }}
                   >
-                    <Icon className="h-8 w-8 mb-2" />
-                    <span className="text-center text-sm">
+                    <Icon className="h-10 w-10 mb-2" />
+                    <span className="text-center text-base font-medium text-gray-800">
                       {category.label}
                     </span>
                   </button>
                 );
               })}
             </div>
-          </div>
+          ) : (
+            // --- STEP 2: Details Form ---
+            <div className="space-y-6">
+              {renderConfirmationHeader()}
 
-          {selectedCategory && (
-            <>
               <div>
                 <Label htmlFor="time" className="mb-2 block text-base">
-                  {timeInputLabel}
+                  {selectedCategory === "sleep"
+                    ? "Hora de Inicio"
+                    : "Hora del Evento"}
                 </Label>
                 <Input
                   id="time"
@@ -354,21 +408,20 @@ export function EventModal({
                   className="w-full"
                 />
               </div>
+
               <div>
                 <Label className="mb-2 block text-base">Detalles</Label>
                 {renderCategoryForm()}
               </div>
-            </>
-          )}
 
-          {selectedCategory && (
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="w-full h-12 bg-blue-violet-500 hover:bg-blue-violet-500/90 text-white disabled:opacity-50"
-            >
-              {isSubmitting ? "Registrando..." : "Registrar Evento"}
-            </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="w-full h-12 bg-blue-violet-500 hover:bg-blue-violet-500/90 text-white disabled:opacity-50"
+              >
+                {isSubmitting ? "Registrando..." : "Registrar Evento"}
+              </Button>
+            </div>
           )}
         </div>
       </SheetContent>

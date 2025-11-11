@@ -20,6 +20,7 @@ import {
   DiaperDetails,
   SleepDetails,
 } from "@/lib/types";
+import { endOfDay, startOfDay } from "date-fns";
 
 // Define the payload from the modal, omitting fields we will set in the service
 type EventCreationPayload = Omit<NewDocument<Event>, "childId" | "teacherId">;
@@ -102,17 +103,26 @@ export async function createEvents(
 }
 
 /**
- * Retrieves all events for a specific child, ordered by most recent first.
+ * Retrieves all events for a specific child on a given date, ordered by most recent first.
  * @param childId The ID of the child.
+ * @param date The date to retrieve events for.
  */
-export async function getEventsByChildId(childId: string): Promise<Event[]> {
+export async function getEventsByChildId(
+  childId: string,
+  date: Date
+): Promise<Event[]> {
   if (!childId) return [];
 
   try {
     const eventsCollection = collection(db, "events");
+    const dayStart = startOfDay(date);
+    const dayEnd = endOfDay(date);
+
     const q = query(
       eventsCollection,
       where("childId", "==", childId),
+      where("eventTime", ">=", dayStart),
+      where("eventTime", "<=", dayEnd),
       orderBy("eventTime", "desc")
     );
 
@@ -123,6 +133,13 @@ export async function getEventsByChildId(childId: string): Promise<Event[]> {
       `[event.service] Error getting events for child ${childId}: `,
       error
     );
+    // Firestore will likely throw an error here if the index doesn't exist.
+    // We'll guide the user to create it.
+    if ((error as { code?: string }).code === "failed-precondition") {
+      throw new Error(
+        "La consulta requiere un índice de Firestore. Por favor, revisa la consola del navegador para ver el link de creación."
+      );
+    }
     throw new Error("No se pudieron obtener los eventos del alumno.");
   }
 }

@@ -47,12 +47,12 @@ export function EventTimelineItem({ event, isLast }: EventTimelineItemProps) {
   const description = getEventDescription(event);
 
   return (
-    <div className="flex gap-x-4 p-2 items-center">
+    <div className="flex gap-x-4 p-3 items-center">
       {/* Columna de la línea de tiempo */}
       <div className="relative flex justify-center items-center">
         {/* Línea vertical */}
         {!isLast && (
-          <div className="absolute top-12 left-1/2 h-full w-0.5 bg-gray-200"></div>
+          <div className="absolute top-11 left-1/2 h-full w-0.5 bg-gray-200"></div>
         )}
         <div
           className="h-11 w-11 rounded-full flex items-center justify-center shadow-md"

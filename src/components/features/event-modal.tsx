@@ -174,7 +174,6 @@ export function EventModal({
           break;
         case "activity":
         case "incident":
-        case "general_note":
           payload = {
             category: selectedCategory,
             eventTime: eventTimestamp,
@@ -281,17 +280,6 @@ export function EventModal({
           );
         }
         return null;
-      case "note":
-        return (
-          <Textarea
-            value={formData.noteDescription || ""}
-            onChange={(e) =>
-              handleInputChange("noteDescription", e.target.value)
-            }
-            placeholder="Describe el evento..."
-            rows={4}
-          />
-        );
       default:
         return null;
     }

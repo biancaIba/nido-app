@@ -12,7 +12,7 @@ import {
   getChildrenByClassroomId,
   createEvents,
 } from "@/lib/services";
-import { ChildCard, EventModal, EventFormData } from "@/components/features";
+import { ChildCard, EventModal } from "@/components/features";
 import {
   Button,
   Select,
@@ -120,7 +120,7 @@ export default function TeacherDashboard() {
     }
   };
 
-  const handleEventSubmit = async (eventData: EventFormData) => {
+  const handleEventSubmit = async (eventData) => {
     if (!user?.uid) {
       return;
     }
@@ -235,7 +235,7 @@ export default function TeacherDashboard() {
 
       {/* Child Grid */}
       <div className={cn("px-4 py-4", selectionMode && "mb-30")}>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {children.map((child) => (
             <ChildCard
               key={child.id}

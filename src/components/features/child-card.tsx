@@ -40,7 +40,7 @@ export function ChildCard({
   return (
     <Card
       className={`relative overflow-hidden cursor-pointer transition-all hover:shadow-md ${
-        isSelected ? "ring-4 ring-blue-violet-500 shadow-lg" : ""
+        isSelected ? "ring-2 ring-blue-violet-500 shadow-lg" : ""
       }`}
       onClick={onClick}
     >
@@ -52,7 +52,7 @@ export function ChildCard({
 
       <div className="flex flex-col items-center p-4 space-y-3">
         <Avatar className="h-20 w-20 border-4 border-white shadow-md">
-          <AvatarImage src={child.avatar} alt={child.firstName} />
+          <AvatarImage src={child.avatarUrl} alt={child.firstName} />
           <AvatarFallback className="bg-blue-violet-500 text-white">
             {child.firstName
               .split(" ")

@@ -110,7 +110,7 @@ function createEventSummaryDescription(payload: EventCreationPayload): string {
         "Inició una siesta a las " +
         new Date(
           (payload.details as SleepDetails).startTime.seconds * 1000
-        ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) +
+        ).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }) +
         "."
       );
     case "diaper":

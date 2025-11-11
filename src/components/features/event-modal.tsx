@@ -1,13 +1,16 @@
+"use client";
+
 import { useState } from "react";
 import { Timestamp } from "firebase/firestore";
-import { Moon, Apple, Toilet, AlertCircle, Palette, Pill } from "lucide-react";
 
+import { EVENTS_CONFIG } from "@/config";
 import {
   Child,
+  EventCategory,
   FoodDetails,
-  SleepDetails,
   DiaperDetails,
-  NoteDetails,
+  NewDocument,
+  Event,
 } from "@/lib/types";
 import {
   Button,
@@ -19,71 +22,65 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui";
+import { cn } from "@/lib/utils";
+
+// --- Utility Functions and Constants ---
+
+const eventCategories = Object.values(EVENTS_CONFIG);
+
+export type EventFormPayload = Omit<
+  NewDocument<Event>,
+  | "id"
+  | "childId"
+  | "teacherId"
+  | "createdBy"
+  | "updatedBy"
+  | "deletedBy"
+  | "createdAt"
+  | "updatedAt"
+  | "deletedAt"
+>;
+
+interface FormData {
+  eventTime: string;
+  detailId: string; // For 'simple' forms (food, diaper)
+  foodDescription: string;
+  diaperObservation: string;
+  startTime: string; // For 'sleep'
+  endTime: string; // For 'sleep'
+  medicineName: string;
+  medicineDose: string;
+  noteDescription: string; // For 'note' forms
+}
+
+function getLocalTime(): string {
+  return new Date().toLocaleTimeString("es-ES", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function timeStringToTimestamp(timeStr: string): Timestamp {
+  if (!timeStr || !timeStr.includes(":")) {
+    console.warn("Invalid time string provided:", timeStr);
+    return Timestamp.now();
+  }
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  const eventDate = new Date();
+  eventDate.setHours(hours, minutes, 0, 0);
+  return Timestamp.fromDate(eventDate);
+}
+
+// --- Component Props ---
 
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
   childrenData: Child[];
-  onSubmit: (eventData: EventFormData) => Promise<void>;
+  onSubmit: (payload: EventFormPayload) => Promise<void>;
 }
 
-export interface EventFormData {
-  category:
-    | "food"
-    | "sleep"
-    | "diaper"
-    | "activity"
-    | "incident"
-    | "general_note";
-  details: FoodDetails | SleepDetails | DiaperDetails | NoteDetails;
-  eventTime: Timestamp;
-  comment?: string;
-}
-
-const EVENT_CATEGORIES = [
-  {
-    id: "siesta",
-    label: "Sueño/Siesta",
-    icon: Moon,
-    color: "#8a2be2",
-    details: ["Inicio", "Fin", "No durmió", "Despertó llorando"],
-  },
-  {
-    id: "alimentacion",
-    label: "Alimentación",
-    icon: Apple,
-    color: "#2e8b57",
-    details: ["Leche", "Sólido", "Agua", "Rechazó"],
-  },
-  {
-    id: "higiene",
-    label: "Higiene/Baño",
-    icon: Toilet,
-    color: "#0066ff",
-    details: ["Pañal limpio", "Pañal sucio", "Baño completo", "Cambio de ropa"],
-  },
-  {
-    id: "incidente",
-    label: "Incidente",
-    icon: AlertCircle,
-    color: "#ff4444",
-    details: ["Golpe leve", "Caída", "Llanto", "Malestar"],
-  },
-  {
-    id: "actividad",
-    label: "Actividad",
-    icon: Palette,
-    color: "#ffc300",
-    details: ["Arte", "Música", "Juego libre", "Lectura"],
-  },
-  {
-    id: "medicamento",
-    label: "Medicamento",
-    icon: Pill,
-    color: "#ff9966",
-    details: ["Dosis única", "Tratamiento", "Vitaminas"],
-  },
-];
+// --- Main Component ---
 
 export function EventModal({
   isOpen,
@@ -91,114 +88,219 @@ export function EventModal({
   childrenData,
   onSubmit,
 }: EventModalProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedDetail, setSelectedDetail] = useState<string | null>(null);
-  const [time, setTime] = useState(
-    new Date().toLocaleTimeString("es-ES", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  );
-  const [comment, setComment] = useState("");
+  const [selectedCategory, setSelectedCategory] =
+    useState<EventCategory | null>(null);
+  const [formData, setFormData] = useState<Partial<FormData>>({
+    eventTime: getLocalTime(),
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const resetForm = () => {
+    setSelectedCategory(null);
+    setFormData({ eventTime: getLocalTime() });
+    setIsSubmitting(false);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = async () => {
-    if (!selectedCategory) return;
+    if (!selectedCategory || !formData.eventTime) return;
 
     setIsSubmitting(true);
+    let payload: EventFormPayload;
+    const eventTimestamp = timeStringToTimestamp(formData.eventTime);
 
     try {
-      // Convert time string to Timestamp
-      const [hours, minutes] = time.split(":").map(Number);
-      const eventDate = new Date();
-      eventDate.setHours(hours, minutes, 0, 0);
-      const eventTimestamp = Timestamp.fromDate(eventDate);
-
-      // Build details based on category
-      let details: FoodDetails | SleepDetails | DiaperDetails | NoteDetails;
-
       switch (selectedCategory) {
-        case "alimentacion":
-          details = {
-            mealType: (selectedDetail?.toLowerCase() === "leche"
-              ? "breakfast"
-              : selectedDetail?.toLowerCase() === "sólido"
-              ? "lunch"
-              : "snack") as FoodDetails["mealType"],
-            description: comment || undefined,
-          } as FoodDetails;
+        case "food":
+          if (!formData.detailId) throw new Error("Meal type is required");
+          payload = {
+            category: "food",
+            eventTime: eventTimestamp,
+            details: {
+              mealType: formData.detailId as FoodDetails["mealType"],
+              description: formData.foodDescription || "",
+            },
+          };
           break;
-        case "siesta":
-          details = {
-            startTime: eventTimestamp,
-            endTime: selectedDetail === "Fin" ? eventTimestamp : undefined,
-          } as SleepDetails;
+        case "sleep":
+          const sleepStartTime = formData.startTime
+            ? timeStringToTimestamp(formData.startTime)
+            : eventTimestamp;
+          payload = {
+            category: "sleep",
+            eventTime: eventTimestamp,
+            details: {
+              startTime: sleepStartTime,
+              endTime: formData.endTime
+                ? timeStringToTimestamp(formData.endTime)
+                : undefined,
+            },
+          };
           break;
-        case "higiene":
-          details = {
-            type: (selectedDetail?.includes("limpio")
-              ? "pee"
-              : selectedDetail?.includes("sucio")
-              ? "poo"
-              : "both") as DiaperDetails["type"],
-            observation: comment || undefined,
-          } as DiaperDetails;
+        case "diaper":
+          if (!formData.detailId) throw new Error("Diaper type is required");
+          payload = {
+            category: "diaper",
+            eventTime: eventTimestamp,
+            details: {
+              type: formData.detailId as DiaperDetails["type"],
+              observation: formData.diaperObservation || "",
+            },
+          };
           break;
-        case "actividad":
-        case "incidente":
-        case "medicamento":
-          details = {
-            description: selectedDetail
-              ? `${selectedDetail}${comment ? `: ${comment}` : ""}`
-              : comment,
-          } as NoteDetails;
+        case "medicine":
+          if (!formData.medicineName || !formData.medicineDose)
+            throw new Error("Medicine name and dose are required");
+          payload = {
+            category: "medicine",
+            eventTime: eventTimestamp,
+            details: {
+              name: formData.medicineName,
+              dose: formData.medicineDose,
+            },
+          };
+          break;
+        case "activity":
+        case "incident":
+        case "general_note":
+          payload = {
+            category: selectedCategory,
+            eventTime: eventTimestamp,
+            details: { description: formData.noteDescription || "" },
+          };
           break;
         default:
-          details = { description: comment } as NoteDetails;
+          throw new Error("Invalid category selected");
       }
 
-      // Map UI categories to Event type categories
-      const categoryMap: Record<string, EventFormData["category"]> = {
-        siesta: "sleep",
-        alimentacion: "food",
-        higiene: "diaper",
-        incidente: "incident",
-        actividad: "activity",
-        medicamento: "general_note",
-      };
-
-      const eventData: EventFormData = {
-        category: categoryMap[selectedCategory] || "general_note",
-        details,
-        eventTime: eventTimestamp,
-        comment: comment || undefined,
-      };
-
-      await onSubmit(eventData);
-
-      // Reset form
-      setSelectedCategory(null);
-      setSelectedDetail(null);
-      setComment("");
-      setTime(
-        new Date().toLocaleTimeString("es-ES", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      );
+      await onSubmit(payload);
+      handleClose();
     } catch (error) {
       console.error("Error submitting event:", error);
-    } finally {
       setIsSubmitting(false);
     }
   };
 
-  const selectedCategoryData = EVENT_CATEGORIES.find(
-    (cat) => cat.id === selectedCategory
-  );
+  const renderCategoryForm = () => {
+    if (!selectedCategory) return null;
+    const config = EVENTS_CONFIG[selectedCategory];
+
+    switch (config.formType) {
+      case "simple":
+        return (
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {config.details?.map((detail) => (
+                <button
+                  key={detail.id}
+                  onClick={() => handleInputChange("detailId", detail.id)}
+                  className={cn(
+                    "px-4 py-2 rounded-full text-sm transition-all",
+                    formData.detailId === detail.id
+                      ? "text-white shadow-md"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  )}
+                  style={
+                    formData.detailId === detail.id
+                      ? { backgroundColor: config.color }
+                      : undefined
+                  }
+                >
+                  {detail.label}
+                </button>
+              ))}
+            </div>
+            <Textarea
+              value={
+                selectedCategory === "food"
+                  ? formData.foodDescription
+                  : formData.diaperObservation
+              }
+              onChange={(e) =>
+                handleInputChange(
+                  selectedCategory === "food"
+                    ? "foodDescription"
+                    : "diaperObservation",
+                  e.target.value
+                )
+              }
+              placeholder="Comentarios (Opcional)..."
+              rows={3}
+            />
+          </div>
+        );
+      case "custom":
+        if (selectedCategory === "sleep") {
+          return (
+            <div className="space-y-4">
+              <Label htmlFor="startTime">Hora de Inicio</Label>
+              <Input
+                id="startTime"
+                type="time"
+                value={formData.startTime || ""}
+                onChange={(e) => handleInputChange("startTime", e.target.value)}
+              />
+              <Label htmlFor="endTime">Hora de Fin (Opcional)</Label>
+              <Input
+                id="endTime"
+                type="time"
+                value={formData.endTime || ""}
+                onChange={(e) => handleInputChange("endTime", e.target.value)}
+              />
+            </div>
+          );
+        }
+        if (selectedCategory === "medicine") {
+          return (
+            <div className="space-y-4">
+              <Label htmlFor="medicineName">Nombre del Medicamento</Label>
+              <Input
+                id="medicineName"
+                value={formData.medicineName || ""}
+                onChange={(e) =>
+                  handleInputChange("medicineName", e.target.value)
+                }
+                placeholder="Ej: Paracetamol"
+              />
+              <Label htmlFor="medicineDose">Dosis</Label>
+              <Input
+                id="medicineDose"
+                value={formData.medicineDose || ""}
+                onChange={(e) =>
+                  handleInputChange("medicineDose", e.target.value)
+                }
+                placeholder="Ej: 5ml"
+              />
+            </div>
+          );
+        }
+        return null;
+      case "note":
+        return (
+          <Textarea
+            value={formData.noteDescription || ""}
+            onChange={(e) =>
+              handleInputChange("noteDescription", e.target.value)
+            }
+            placeholder="Describe el evento..."
+            rows={4}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={isOpen} onOpenChange={handleClose}>
       <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>
@@ -209,33 +311,30 @@ export function EventModal({
         </SheetHeader>
 
         <div className="space-y-6">
-          {/* Event Categories Grid */}
           <div>
             <Label className="mb-3 block">Seleccionar Categoría</Label>
             <div className="grid grid-cols-2 gap-3">
-              {EVENT_CATEGORIES.map((category) => {
+              {eventCategories.map((category) => {
                 const Icon = category.icon;
+                const isSelected = selectedCategory === category.id;
                 return (
                   <button
                     key={category.id}
                     onClick={() => {
+                      setFormData({ eventTime: formData.eventTime });
                       setSelectedCategory(category.id);
-                      setSelectedDetail(null);
                     }}
-                    className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${
-                      selectedCategory === category.id
+                    className={cn(
+                      "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all",
+                      isSelected
                         ? "border-current shadow-lg scale-105"
                         : "border-gray-200 hover:border-gray-300"
-                    }`}
+                    )}
                     style={{
-                      color:
-                        selectedCategory === category.id
-                          ? category.color
-                          : "#6b7280",
-                      backgroundColor:
-                        selectedCategory === category.id
-                          ? `${category.color}10`
-                          : "white",
+                      color: isSelected ? category.color : "#6b7280",
+                      backgroundColor: isSelected
+                        ? `${category.color}1A`
+                        : "white",
                     }}
                   >
                     <Icon className="h-8 w-8 mb-2" />
@@ -248,70 +347,38 @@ export function EventModal({
             </div>
           </div>
 
-          {/* Detail Options */}
-          {selectedCategoryData && (
-            <div>
-              <Label className="mb-3 block">Detalles</Label>
-              <div className="flex flex-wrap gap-2">
-                {selectedCategoryData.details.map((detail) => (
-                  <button
-                    key={detail}
-                    onClick={() => setSelectedDetail(detail)}
-                    className={`px-4 py-2 rounded-full text-sm transition-all ${
-                      selectedDetail === detail
-                        ? "text-white shadow-md"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                    style={
-                      selectedDetail === detail
-                        ? { backgroundColor: selectedCategoryData.color }
-                        : undefined
-                    }
-                  >
-                    {detail}
-                  </button>
-                ))}
+          {selectedCategory && (
+            <>
+              <div>
+                <Label htmlFor="time" className="mb-2 block text-base">
+                  Hora del Evento
+                </Label>
+                <Input
+                  id="time"
+                  type="time"
+                  value={formData.eventTime}
+                  onChange={(e) =>
+                    handleInputChange("eventTime", e.target.value)
+                  }
+                  className="w-full"
+                />
               </div>
-            </div>
+              <div>
+                <Label className="mb-2 block text-base">Detalles</Label>
+                {renderCategoryForm()}
+              </div>
+            </>
           )}
 
-          {/* Time Input */}
-          <div>
-            <Label htmlFor="time" className="mb-2 block">
-              Hora
-            </Label>
-            <Input
-              id="time"
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="w-full"
-            />
-          </div>
-
-          {/* Comment Textarea */}
-          <div>
-            <Label htmlFor="comment" className="mb-2 block">
-              Comentarios (Opcional)
-            </Label>
-            <Textarea
-              id="comment"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Agregar notas adicionales..."
-              rows={3}
-              className="w-full resize-none"
-            />
-          </div>
-
-          {/* Submit Button */}
-          <Button
-            onClick={handleSubmit}
-            disabled={!selectedCategory || isSubmitting}
-            className="w-full h-12 bg-blue-violet-500 hover:bg-blue-violet-500/90 text-white disabled:opacity-50"
-          >
-            {isSubmitting ? "Registrando..." : "Registrar Evento"}
-          </Button>
+          {selectedCategory && (
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="w-full h-12 bg-blue-violet-500 hover:bg-blue-violet-500/90 text-white disabled:opacity-50"
+            >
+              {isSubmitting ? "Registrando..." : "Registrar Evento"}
+            </Button>
+          )}
         </div>
       </SheetContent>
     </Sheet>

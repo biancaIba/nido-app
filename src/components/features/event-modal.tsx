@@ -246,7 +246,7 @@ export function EventModal({
                 )
               }
               placeholder="Comentarios (Opcional)..."
-              rows={3}
+              className="min-h-30"
             />
           </div>
         );

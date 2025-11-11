@@ -11,6 +11,7 @@ import {
   DiaperDetails,
   NewDocument,
   Event,
+  SleepDetails,
 } from "@/lib/types";
 import {
   Button,
@@ -46,7 +47,6 @@ interface FormData {
   detailId: string; // For 'simple' forms (food, diaper)
   foodDescription: string;
   diaperObservation: string;
-  startTime: string; // For 'sleep'
   endTime: string; // For 'sleep'
   medicineName: string;
   medicineDose: string;
@@ -131,18 +131,22 @@ export function EventModal({
           };
           break;
         case "sleep":
-          const sleepStartTime = formData.startTime
-            ? timeStringToTimestamp(formData.startTime)
-            : eventTimestamp;
+          // The main eventTime is the startTime of the nap.
+          const sleepDetails: SleepDetails = {
+            startTime: eventTimestamp,
+          };
+
+          // Only add endTime to the object if it has a value.
+          // This prevents sending 'undefined' to Firestore.
+          if (formData.endTime) {
+            sleepDetails.endTime = timeStringToTimestamp(formData.endTime);
+          }
+
           payload = {
             category: "sleep",
-            eventTime: eventTimestamp,
-            details: {
-              startTime: sleepStartTime,
-              endTime: formData.endTime
-                ? timeStringToTimestamp(formData.endTime)
-                : undefined,
-            },
+            // The eventTime is when it's logged, which we can make now.
+            eventTime: Timestamp.now(),
+            details: sleepDetails,
           };
           break;
         case "diaper":
@@ -241,13 +245,7 @@ export function EventModal({
         if (selectedCategory === "sleep") {
           return (
             <div className="space-y-4">
-              <Label htmlFor="startTime">Hora de Inicio</Label>
-              <Input
-                id="startTime"
-                type="time"
-                value={formData.startTime || ""}
-                onChange={(e) => handleInputChange("startTime", e.target.value)}
-              />
+              {/* The main 'Hora del Evento' now serves as the start time */}
               <Label htmlFor="endTime">Hora de Fin (Opcional)</Label>
               <Input
                 id="endTime"
@@ -299,20 +297,23 @@ export function EventModal({
     }
   };
 
+  // Determine the label for the main time input based on the category
+  const timeInputLabel =
+    selectedCategory === "sleep" ? "Hora de Inicio" : "Hora del Evento";
+
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
       <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>
             {childrenData.length > 1
-              ? `Registrar Evento para ${childrenData.length} Alumnos`
-              : `Registrar Evento para: ${childrenData[0]?.firstName}`}
+              ? `Evento para ${childrenData.length} Alumnos`
+              : `Evento para: ${childrenData[0]?.firstName}`}
           </SheetTitle>
         </SheetHeader>
 
         <div className="space-y-6">
           <div>
-            <Label className="mb-3 block">Seleccionar Categoría</Label>
             <div className="grid grid-cols-2 gap-3">
               {eventCategories.map((category) => {
                 const Icon = category.icon;
@@ -321,11 +322,13 @@ export function EventModal({
                   <button
                     key={category.id}
                     onClick={() => {
-                      setFormData({ eventTime: formData.eventTime });
+                      // Reset specific form fields when changing category
+                      const { eventTime } = formData;
+                      setFormData({ eventTime });
                       setSelectedCategory(category.id);
                     }}
                     className={cn(
-                      "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all",
+                      "flex flex-col items-center justify-center p-10 rounded-xl border-2 transition-all",
                       isSelected
                         ? "border-current shadow-lg scale-105"
                         : "border-gray-200 hover:border-gray-300"
@@ -351,7 +354,7 @@ export function EventModal({
             <>
               <div>
                 <Label htmlFor="time" className="mb-2 block text-base">
-                  Hora del Evento
+                  {timeInputLabel}
                 </Label>
                 <Input
                   id="time"

@@ -4,6 +4,10 @@ import {
   writeBatch,
   serverTimestamp,
   FieldValue,
+  query,
+  where,
+  orderBy,
+  getDocs,
 } from "firebase/firestore";
 
 import { db } from "@/config";
@@ -94,6 +98,32 @@ export async function createEvents(
   } catch (error) {
     console.error("Error creating events batch: ", error);
     return { success: false, error: (error as Error).message };
+  }
+}
+
+/**
+ * Retrieves all events for a specific child, ordered by most recent first.
+ * @param childId The ID of the child.
+ */
+export async function getEventsByChildId(childId: string): Promise<Event[]> {
+  if (!childId) return [];
+
+  try {
+    const eventsCollection = collection(db, "events");
+    const q = query(
+      eventsCollection,
+      where("childId", "==", childId),
+      orderBy("eventTime", "desc")
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map((doc) => doc.data() as Event);
+  } catch (error) {
+    console.error(
+      `[event.service] Error getting events for child ${childId}: `,
+      error
+    );
+    throw new Error("No se pudieron obtener los eventos del alumno.");
   }
 }
 

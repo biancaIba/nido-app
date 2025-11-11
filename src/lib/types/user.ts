@@ -12,4 +12,5 @@ export interface User extends Omit<BaseModel, "id"> {
   lastName: string;
   avatarUrl?: string;
   role: UserRole[];
+  childrenIds?: string[]; // Array of Child IDs
 }

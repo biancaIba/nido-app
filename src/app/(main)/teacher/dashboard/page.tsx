@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { Users, X } from "lucide-react";
+import { toast } from "sonner";
 
 import { useAuth } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
@@ -146,6 +147,7 @@ export default function TeacherDashboard() {
 
       if (result.success) {
         // TODO: Show success toast
+        toast.success("Evento creado exitosamente.");
 
         // Reset state
         if (selectionMode) {
@@ -162,11 +164,10 @@ export default function TeacherDashboard() {
           setChildren(fetchedChildren);
         }
       } else {
-        // TODO: Show error toast
+        console.error("Error creating event:", result);
       }
     } catch (error) {
-      console.error("Error creating event:", error);
-      // TODO: Show error toast
+      toast.error("Error creando evento.");
     }
   };
 

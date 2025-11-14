@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+
+import { Screen } from "@/config";
 import {
   AddEditChild,
   AdminDashboard,
   ManageChildren,
   ManageClassrooms,
 } from "@/components/features";
-import { Screen } from "@/lib/types/screen";
 
 export default function AdminPage() {
   const [screen, setScreen] = useState<Screen>("home");

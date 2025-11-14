@@ -146,7 +146,6 @@ export default function TeacherDashboard() {
       );
 
       if (result.success) {
-        // TODO: Show success toast
         toast.success("Evento creado exitosamente.");
 
         // Reset state

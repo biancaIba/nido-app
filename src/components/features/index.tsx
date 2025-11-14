@@ -1,2 +1,3 @@
 export * from "./event-modal";
-export * from "./student-card";
+export * from "./child-card";
+export * from "./event-timeline-item";

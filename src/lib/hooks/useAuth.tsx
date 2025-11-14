@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import {
-  User,
+  User as FirebaseAuthUser,
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
@@ -12,14 +12,22 @@ import {
   AuthError,
 } from "firebase/auth";
 import { auth } from "@/config/index";
+import { getUserById } from "@/lib/services";
+import type { User as AppUser } from "@/lib/types"; // Import our custom User type
 
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null; // Use our custom AppUser type
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   logOut: () => Promise<void>;
-  signInWithEmail: (email: string, password: string) => Promise<User | null>;
-  signUpWithEmail: (email: string, password: string) => Promise<User | null>;
+  signInWithEmail: (
+    email: string,
+    password: string
+  ) => Promise<FirebaseAuthUser | null>;
+  signUpWithEmail: (
+    email: string,
+    password: string
+  ) => Promise<FirebaseAuthUser | null>;
   authError: string | null;
 }
 
@@ -30,7 +38,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -51,7 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signInWithEmail = async (
     email: string,
     password: string
-  ): Promise<User | null> => {
+  ): Promise<FirebaseAuthUser | null> => {
     setAuthError(null);
     setLoading(true);
     try {
@@ -85,7 +93,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signUpWithEmail = async (
     email: string,
     password: string
-  ): Promise<User | null> => {
+  ): Promise<FirebaseAuthUser | null> => {
     setAuthError(null);
     setLoading(true);
     try {
@@ -96,6 +104,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       );
 
       // TODO: Aquí es un buen lugar para agregar el usuario a Firestore
+      // The onAuthStateChanged listener will fire, but the user might not be in the DB yet.
+      // We need to call createUserInDb from the sign-up page *after* this function succeeds.
 
       return userCredential.user;
     } catch (error) {
@@ -126,10 +136,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await signOut(auth);
   };
 
+  // This effect now handles fetching the user profile from Firestore
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // User is signed in, fetch their profile from Firestore
+        setLoading(true);
+        const userProfile = await getUserById(firebaseUser.uid);
+        setUser(userProfile); // Set our custom user object
+        setLoading(false);
+      } else {
+        // User is signed out
+        setUser(null);
+        setLoading(false);
+      }
     });
 
     return () => unsubscribe();

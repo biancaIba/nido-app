@@ -1,13 +1,35 @@
-import { collection, addDoc, getDocs, doc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc,
+  Timestamp,
+} from "firebase/firestore";
 
 import { db } from "@/config";
 import { User } from "@/lib/types";
 
 const usersCollection = collection(db, "users");
 
-export async function addUser(user: Omit<User, "id">) {
-  const docRef = await addDoc(usersCollection, user);
-  return docRef.id;
+export async function createUserInDb(
+  uid: string,
+  userData: Omit<
+    User,
+    "id" | "createdAt" | "updatedAt" | "createdBy" | "updatedBy"
+  >
+) {
+  const userRef = doc(db, "users", uid);
+  const dataWithBaseFields = {
+    ...userData,
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
+    createdBy: uid,
+    updatedBy: uid,
+  };
+
+  await setDoc(userRef, dataWithBaseFields);
+  return uid;
 }
 
 export async function getUsers(): Promise<User[]> {

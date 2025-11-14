@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 
 import "@/app/globals.css";
 import { AuthProvider } from "@/lib/hooks";
+import { Toaster } from "@/components/ui";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,6 +48,7 @@ export default async function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="light">
           <AuthProvider>{children}</AuthProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

@@ -1,6 +1,7 @@
-import { Card } from "@/components/ui";
-import { Screen } from "@/lib/types/screen";
 import { Home, School, Baby } from "lucide-react";
+
+import { Card } from "@/components/ui";
+import { Screen } from "@/config";
 
 interface AdminDashboardProps {
   onNavigate: (screen: Screen) => void;

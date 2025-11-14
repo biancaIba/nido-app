@@ -1,9 +1,52 @@
-import { collection, doc, getDoc, getDocs, query } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  serverTimestamp,
+} from "firebase/firestore";
 
 import { db } from "@/config/firebase";
 import { Classroom } from "@/lib/types";
 
 const classroomCollection = collection(db, "classrooms");
+
+/**
+ * Creates a new classroom document in Firestore.
+ * @param name The name of the new classroom.
+ * @param teacherId The UID of the user creating the classroom.
+ * @returns The newly created Classroom object.
+ */
+export const createClassroom = async (
+  name: string,
+  teacherId: string
+): Promise<Classroom> => {
+  try {
+    const classroomRef = await addDoc(collection(db, "classrooms"), {
+      name,
+      teacherIds: [],
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      createdBy: teacherId,
+      updatedBy: teacherId,
+      deletedAt: null,
+      deletedBy: null,
+    });
+
+    return {
+      id: classroomRef.id,
+      name,
+      teacherIds: [],
+      createdAt: new Date(), // Approximate client-side timestamp
+      updatedAt: new Date(),
+    } as unknown as Classroom;
+  } catch (error) {
+    console.error("[classroom.service] Error creating classroom: ", error);
+    throw new Error("No se pudo crear la sala.");
+  }
+};
 
 export const getClassrooms = async (): Promise<Classroom[]> => {
   try {

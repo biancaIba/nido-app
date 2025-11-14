@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   format,
   isToday,
@@ -12,78 +12,100 @@ import { es } from "date-fns/locale";
 import { Loader2, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks";
-import { Child, Classroom, Event } from "@/lib/types";
+import { Child, Event, Classroom } from "@/lib/types";
 import {
-  getChildById,
-  getClassroomById,
+  getChildrenByIds,
   getEventsByChildId,
+  getClassroomById,
 } from "@/lib/services";
 import { EventTimelineItem } from "@/components/features";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Button,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui";
 
 export default function ParentDashboard() {
   const { user } = useAuth();
-  const [child, setChild] = useState<Child | null>(null);
+
+  const [allChildren, setAllChildren] = useState<Child[]>([]);
+
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [classroom, setClassroom] = useState<Classroom | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
+
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
+  // Efecto para obtener la lista de todos los hijos del padre
   useEffect(() => {
-    if (!user) return;
-
-    const childId = user.childrenIds?.[0];
-    if (!childId) {
-      setIsLoading(false);
+    if (!user || !user.childrenIds || user.childrenIds.length === 0) {
       return;
     }
 
-    const fetchData = async () => {
+    const fetchChildren = async () => {
       try {
-        setIsLoading(true);
-        setError(null);
-
-        // 1. Obtenemos los datos del niño
-        const childData = child || (await getChildById(childId));
-        if (!child) setChild(childData);
-
-        if (childData) {
-          // 2. Con el ID de la sala, obtenemos los datos de la sala y los eventos en paralelo
-          const [classroomData, eventsData] = await Promise.all([
-            classroom || getClassroomById(childData.classroomId),
-            getEventsByChildId(childId, selectedDate),
-          ]);
-          if (!classroom) setClassroom(classroomData);
-          setEvents(eventsData);
-        } else {
-          // Si no hay datos del niño, no podemos buscar nada más
-          setEvents([]);
+        const childrenData = await getChildrenByIds(user.childrenIds!);
+        console.log(childrenData);
+        setAllChildren(childrenData);
+        if (childrenData.length > 0) {
+          setSelectedChildId(childrenData[0].id); // Seleccionar el primer hijo por defecto
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        setError("No se pudo cargar la lista de alumnos.");
+      }
+    };
+
+    fetchChildren();
+  }, [user]);
+
+  // Efecto para obtener los datos del hijo seleccionado (sala y eventos)
+  useEffect(() => {
+    if (!selectedChildId) return;
+
+    const fetchDataForChild = async () => {
+      try {
+        setIsLoadingEvents(true);
+        setError(null);
+        const child = allChildren.find((c) => c.id === selectedChildId);
+        if (!child) return;
+
+        const [classroomData, eventsData] = await Promise.all([
+          getClassroomById(child.classroomId),
+          getEventsByChildId(selectedChildId, selectedDate),
+        ]);
+
+        setClassroom(classroomData);
+        setEvents(eventsData);
       } catch (err) {
         setError(
           err instanceof Error
             ? err.message
-            : "No se pudo cargar la información. Intenta de nuevo más tarde."
+            : "No se pudo cargar la información."
         );
-        console.error(err);
       } finally {
-        setIsLoading(false);
+        setIsLoadingEvents(false);
       }
     };
 
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, selectedDate]);
+    fetchDataForChild();
+  }, [selectedChildId, selectedDate, allChildren]);
 
-  const handlePreviousDay = () => {
-    setSelectedDate((currentDate) => addDays(currentDate, -1));
-  };
+  const selectedChild = useMemo(
+    () => allChildren.find((c) => c.id === selectedChildId),
+    [allChildren, selectedChildId]
+  );
 
-  const handleNextDay = () => {
-    setSelectedDate((currentDate) => addDays(currentDate, 1));
-  };
+  const handlePreviousDay = () => setSelectedDate((d) => addDays(d, -1));
+  const handleNextDay = () => setSelectedDate((d) => addDays(d, 1));
 
   const formatDateHeader = (date: Date) => {
     if (isToday(date)) return "Hoy";
@@ -93,38 +115,44 @@ export default function ParentDashboard() {
 
   const isNextDayDisabled = isToday(startOfDate(selectedDate));
 
-  if (!user && !isLoading) {
-    // Manejar el caso donde el usuario no está logueado
-    return <div>Inicia sesión para ver el dashboard.</div>;
-  }
-
-  if (!child && !isLoading) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
-        <h2 className="text-xl font-semibold">No hay alumnos asignados</h2>
-        <p className="max-w-md text-shark-gray-500">
-          Parece que tu cuenta no está vinculada a ningún alumno. Por favor,
-          contacta con la administración del centro para que te asignen a tu
-          hijo/a.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <main className="container mx-auto max-w-3xl p-4 md:p-8">
-      {child && (
+      {/* Selector de Niño (si hay más de uno) */}
+      {allChildren.length > 1 && (
+        <div className="mb-8 bg-white">
+          <Select
+            value={selectedChildId ?? ""}
+            onValueChange={setSelectedChildId}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona un niño/a" />
+            </SelectTrigger>
+            <SelectContent>
+              {allChildren.map((child) => (
+                <SelectItem key={child.id} value={child.id}>
+                  {child.firstName} {child.lastName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {selectedChild && (
         <header className="mb-8 flex items-center gap-4">
           <Avatar className="h-16 w-16 border-2 border-white shadow-sm">
-            <AvatarImage src={child.avatarUrl} alt={child.firstName} />
+            <AvatarImage
+              src={selectedChild.avatarUrl}
+              alt={selectedChild.firstName}
+            />
             <AvatarFallback className="text-2xl">
-              {child.firstName.charAt(0)}
-              {child.lastName.charAt(0)}
+              {selectedChild.firstName.charAt(0)}
+              {selectedChild.lastName.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div>
             <h1 className="text-3xl font-bold text-shark-gray-900">
-              {child.firstName} {child.lastName}
+              {selectedChild.firstName} {selectedChild.lastName}
             </h1>
             <p className="text-base capitalize text-shark-gray-500">
               {classroom?.name || "Historial de eventos"}
@@ -144,7 +172,6 @@ export default function ParentDashboard() {
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
-
           <div className="flex-1 text-center">
             <p className="font-semibold capitalize text-shark-gray-900">
               {formatDateHeader(selectedDate)}
@@ -153,7 +180,6 @@ export default function ParentDashboard() {
               {format(selectedDate, "d 'de' MMMM 'de' yyyy", { locale: es })}
             </p>
           </div>
-
           <Button
             variant="outline"
             size="icon"
@@ -166,7 +192,7 @@ export default function ParentDashboard() {
         </div>
       </div>
 
-      {isLoading ? (
+      {isLoadingEvents ? (
         <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
           <Loader2 className="h-8 w-8 animate-spin text-shark-gray-400" />
           <p className="text-shark-gray-500">Cargando eventos...</p>
@@ -177,12 +203,8 @@ export default function ParentDashboard() {
         </div>
       ) : events.length > 0 ? (
         <div className="space-y-2">
-          {events.map((event, index) => (
-            <EventTimelineItem
-              key={event.id}
-              event={event}
-              isLast={index === events.length - 1}
-            />
+          {events.map((event) => (
+            <EventTimelineItem key={event.id} event={event} />
           ))}
         </div>
       ) : (
@@ -192,8 +214,8 @@ export default function ParentDashboard() {
             No hay eventos este día
           </h3>
           <p className="text-sm text-shark-gray-500">
-            No se ha registrado ninguna actividad para {child?.firstName} en la
-            fecha seleccionada.
+            No se ha registrado ninguna actividad para{" "}
+            {selectedChild?.firstName} en la fecha seleccionada.
           </p>
         </div>
       )}

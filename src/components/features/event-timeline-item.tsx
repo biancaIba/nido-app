@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 
 interface EventTimelineItemProps {
   event: Event;
-  isLast: boolean;
 }
 
 function formatTime(timestamp: Timestamp): string {
@@ -41,7 +40,7 @@ function getEventDescription(event: Event): string {
   }
 }
 
-export function EventTimelineItem({ event, isLast }: EventTimelineItemProps) {
+export function EventTimelineItem({ event }: EventTimelineItemProps) {
   const config = EVENTS_CONFIG[event.category];
   const Icon = config.icon;
   const description = getEventDescription(event);
@@ -51,9 +50,6 @@ export function EventTimelineItem({ event, isLast }: EventTimelineItemProps) {
       {/* Columna de la línea de tiempo */}
       <div className="relative flex justify-center items-center">
         {/* Línea vertical */}
-        {!isLast && (
-          <div className="absolute top-11 left-1/2 h-full w-0.5 bg-gray-200"></div>
-        )}
         <div
           className="h-11 w-11 rounded-full flex items-center justify-center shadow-md"
           style={{
@@ -82,7 +78,7 @@ export function EventTimelineItem({ event, isLast }: EventTimelineItemProps) {
           </p>
         </div>
         {description && description !== "" && (
-          <Card className="px-4 py-2 mt-2 bg-shark-gray-50 border-0 shadow-sm mb-3">
+          <Card className="px-4 py-2 mt-2 bg-white border-0 shadow-sm mb-3">
             <span className="text-shark-gray-600">{description}</span>
           </Card>
         )}

@@ -17,8 +17,17 @@ function formatTime(timestamp: Timestamp): string {
 
 function getEventDescription(event: Event): string {
   switch (event.category) {
-    case "food":
-      return `Comió ${event.details.description || event.details.mealType}.`;
+    case "food": {
+      // Busca la etiqueta en español desde la configuración
+      const mealConfig = EVENTS_CONFIG.food.details?.find(
+        (d) => d.id === event.details.mealType
+      );
+      const mealText = mealConfig?.label || event.details.mealType; // "Desayuno"
+      // Combina con la descripción si existe
+      return `${mealText}${
+        event.details.description ? `: ${event.details.description}` : ""
+      }.`;
+    }
     case "sleep":
       const startTime = formatTime(event.details.startTime);
       if (event.details.endTime) {
@@ -26,10 +35,16 @@ function getEventDescription(event: Event): string {
         return `Durmió de ${startTime} a ${endTime}.`;
       }
       return `Comenzó a dormir a las ${startTime}.`;
-    case "diaper":
-      return `Cambio de pañal: ${event.details.type}. ${
-        event.details.observation || ""
-      }`;
+    case "diaper": {
+      // Busca la etiqueta en español desde la configuración
+      const diaperConfig = EVENTS_CONFIG.diaper.details?.find(
+        (d) => d.id === event.details.type
+      );
+      const diaperText = diaperConfig?.label || event.details.type; // "Pipi"
+      return `Cambio de pañal: ${diaperText}${
+        event.details.observation ? ` (${event.details.observation})` : ""
+      }.`;
+    }
     case "medicine":
       return `Tomó ${event.details.name} (${event.details.dose}).`;
     case "activity":

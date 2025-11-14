@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Timestamp } from "firebase/firestore";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 import { EVENTS_CONFIG } from "@/config";
 import {
@@ -195,6 +196,8 @@ export function EventModal({
       handleClose();
     } catch (error) {
       console.error("Error submitting event:", error);
+      toast.error("Error registrando el evento.");
+    } finally {
       setIsSubmitting(false);
     }
   };

@@ -1,50 +1,14 @@
 "use client";
 
-import { useState } from "react";
-
-import { Screen } from "@/config";
-import {
-  AddEditChild,
-  AdminDashboard,
-  ManageChildren,
-  ManageClassrooms,
-} from "@/components/features";
-
 export default function AdminPage() {
-  const [screen, setScreen] = useState<Screen>("home");
-  const [activeTab, setActiveTab] = useState<Screen>("home");
-
-  const handleNavigate = (screen: Screen) => {
-    setScreen(screen);
-    if (screen === "home" || screen === "classrooms" || screen === "children") {
-      setActiveTab(screen);
-    }
-  };
-
-  const renderScreen = () => {
-    switch (screen) {
-      case "home":
-        return (
-          <AdminDashboard onNavigate={handleNavigate} activeTab={activeTab} />
-        );
-      case "classrooms":
-        return (
-          <ManageClassrooms onNavigate={handleNavigate} activeTab={activeTab} />
-        );
-      case "children":
-        return (
-          <ManageChildren onNavigate={handleNavigate} activeTab={activeTab} />
-        );
-      case "add-child":
-        return <AddEditChild onNavigate={handleNavigate} mode="add" />;
-      case "edit-child":
-        return <AddEditChild onNavigate={handleNavigate} mode="edit" />;
-      default:
-        return (
-          <AdminDashboard onNavigate={handleNavigate} activeTab={activeTab} />
-        );
-    }
-  };
-
-  return <div>{renderScreen()}</div>;
+  return (
+    <div className="min-h-screen bg-shark-gray-50">
+      <div className="sticky top-0 z-40 bg-white border-b shadow-sm">
+        <div className="px-4 py-4">
+          <h1 className="text-shark-gray-900">Admin Panel</h1>
+          <p className="text-sm text-shark-gray-900/60">Gestión de Nido</p>
+        </div>
+      </div>
+    </div>
+  );
 }

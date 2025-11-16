@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, School, Users, Home, Baby } from "lucide-react";
+import { Plus, School, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -14,20 +14,11 @@ import {
   Input,
   Label,
 } from "@/components/ui";
-import { Screen } from "@/config";
 import { Classroom } from "@/lib/types";
 import { createClassroom, getClassrooms } from "@/lib/services";
 import { useAuth } from "@/lib/hooks";
 
-interface ManageClassroomsProps {
-  onNavigate: (screen: Screen) => void;
-  activeTab: string;
-}
-
-export function ManageClassrooms({
-  onNavigate,
-  activeTab,
-}: ManageClassroomsProps) {
+export default function SalasPage() {
   const { user } = useAuth();
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,11 +72,14 @@ export function ManageClassrooms({
   }
 
   return (
-    <div className="min-h-screen bg-[--shark-gray-50] pb-20">
+    <div className="min-h-screen bg-shark-gray-50 pb-20">
       {/* Header */}
       <div className="sticky top-0 z-40 border-b bg-white shadow-sm">
-        <div className="px-4 py-4">
-          <h1 className="text-[--shark-gray-900]">Salas</h1>
+        <div className="px-4 py-4 flex items-center justify-between">
+          <h1 className="text-shark-gray-900">Salas</h1>
+          <Button variant="secondary" onClick={() => setIsDialogOpen(true)}>
+            <Plus className="h-6 w-6" />
+          </Button>
         </div>
       </div>
 
@@ -98,29 +92,21 @@ export function ManageClassrooms({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[--blue-violet-500]/10">
-                  <School className="h-6 w-6 text-[--blue-violet-500]" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-violet-500/10">
+                  <School className="h-6 w-6 text-blue-violet-500" />
                 </div>
                 <div>
-                  <h3 className="text-[--shark-gray-900]">{classroom.name}</h3>
-                  <p className="text-sm text-[--shark-gray-900]/60">
+                  <h3 className="text-shark-gray-900">{classroom.name}</h3>
+                  <p className="text-sm text-shark-gray-900/60">
                     {/* TODO: Implement student count */}0 alumnos
                   </p>
                 </div>
               </div>
-              <Users className="h-5 w-5 text-[--shark-gray-900]/40" />
+              <Users className="h-5 w-5 text-shark-gray-900/40" />
             </div>
           </div>
         ))}
       </div>
-
-      {/* Floating Action Button */}
-      <button
-        onClick={() => setIsDialogOpen(true)}
-        className="fixed bottom-24 right-4 flex h-14 w-14 items-center justify-center rounded-full bg-[--blue-violet-500] text-white shadow-lg transition-all hover:scale-110 hover:bg-[--blue-violet-500]/90"
-      >
-        <Plus className="h-6 w-6" />
-      </button>
 
       {/* Add Classroom Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -136,7 +122,7 @@ export function ManageClassrooms({
               id="classroom-name"
               value={newClassroomName}
               onChange={(e) => setNewClassroomName(e.target.value)}
-              placeholder="e.g., Sala Arcoíris"
+              placeholder="Sala Arcoíris"
               className="w-full"
             />
           </div>
@@ -152,57 +138,12 @@ export function ManageClassrooms({
             >
               Cancelar
             </Button>
-            <Button
-              onClick={handleAddClassroom}
-              className="flex-1 bg-[--blue-violet-500] hover:bg-[--blue-violet-500]/90"
-              disabled={isSubmitting}
-            >
+            <Button onClick={handleAddClassroom} disabled={isSubmitting}>
               {isSubmitting ? "Guardando..." : "Guardar"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 border-t bg-white shadow-lg">
-        <div className="flex items-center justify-around py-3">
-          <button
-            onClick={() => onNavigate("home")}
-            className={`flex flex-col items-center gap-1 rounded-lg px-4 py-2 transition-colors ${
-              activeTab === "home"
-                ? "text-[--blue-violet-500]"
-                : "text-[--shark-gray-900]/60"
-            }`}
-          >
-            <Home className="h-6 w-6" />
-            <span className="text-xs">Inicio</span>
-          </button>
-
-          <button
-            onClick={() => onNavigate("classrooms")}
-            className={`flex flex-col items-center gap-1 rounded-lg px-4 py-2 transition-colors ${
-              activeTab === "classrooms"
-                ? "text-[--blue-violet-500]"
-                : "text-[--shark-gray-900]/60"
-            }`}
-          >
-            <School className="h-6 w-6" />
-            <span className="text-xs">Salas</span>
-          </button>
-
-          <button
-            onClick={() => onNavigate("children")}
-            className={`flex flex-col items-center gap-1 rounded-lg px-4 py-2 transition-colors ${
-              activeTab === "children"
-                ? "text-[--blue-violet-500]"
-                : "text-[--shark-gray-900]/60"
-            }`}
-          >
-            <Baby className="h-6 w-6" />
-            <span className="text-xs">Niños</span>
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

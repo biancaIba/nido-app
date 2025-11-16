@@ -93,7 +93,7 @@ export default function Register() {
           <p className="text-base font-light text-gray-500 dark:text-gray-400 text-center sm:text-sm">
             ¿Ya tenés una cuenta?
             <Link
-              href="/login"
+              href="/ingresar"
               className="ml-1 font-medium text-gray-600 hover:underline dark:text-gray-500"
             >
               Iniciar sesión

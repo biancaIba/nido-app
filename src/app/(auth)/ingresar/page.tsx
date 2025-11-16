@@ -136,7 +136,7 @@ export default function LoginPage() {
         <p className="text-sm font-light text-gray-500 dark:text-gray-400">
           No tenés una cuenta?
           <Link
-            href="/register"
+            href="/registrarse"
             className="ml-1 font-medium text-gray-600 hover:underline dark:text-gray-500"
           >
             Registrarse

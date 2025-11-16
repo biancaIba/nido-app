@@ -14,7 +14,7 @@ export default function RootGuardPage() {
       if (user) {
         router.replace("/teacher/dashboard");
       } else {
-        router.replace("/login");
+        router.replace("/ingresar");
       }
     }
   }, [user, loading, router]);

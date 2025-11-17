@@ -19,53 +19,53 @@ export interface EventConfigItem {
 }
 
 export const EVENTS_CONFIG: Record<EventCategory, EventConfigItem> = {
-  food: {
-    id: "food",
-    label: "Alimentación",
+  Comida: {
+    id: "Comida",
+    label: "Comida",
     icon: Apple,
     color: "#2e8b57",
     formType: "simple",
     details: [
-      { id: "breakfast", label: "Desayuno" },
-      { id: "lunch", label: "Almuerzo" },
-      { id: "snack", label: "Snack" },
+      { id: "Desayuno", label: "Desayuno" },
+      { id: "Almuerzo", label: "Almuerzo" },
+      { id: "Snack", label: "Snack" },
     ],
   },
-  sleep: {
-    id: "sleep",
-    label: "Sueño/Siesta",
+  Sueño: {
+    id: "Sueño",
+    label: "Sueño",
     icon: Moon,
     color: "#8a2be2",
     formType: "custom",
   },
-  diaper: {
-    id: "diaper",
-    label: "Pañal/Higiene",
+  Baño: {
+    id: "Baño",
+    label: "Baño",
     icon: Baby,
     color: "#0066ff",
     formType: "simple",
     details: [
-      { id: "pee", label: "Pipi" },
-      { id: "poo", label: "Popo" },
-      { id: "both", label: "Ambos" },
+      { id: "Pipi", label: "Pipi" },
+      { id: "Popo", label: "Popo" },
+      { id: "Ambos", label: "Ambos" },
     ],
   },
-  activity: {
-    id: "activity",
+  Actividad: {
+    id: "Actividad",
     label: "Actividad",
     icon: Palette,
     color: "#ffc300",
     formType: "note",
   },
-  incident: {
-    id: "incident",
+  Incidente: {
+    id: "Incidente",
     label: "Incidente",
     icon: AlertCircle,
     color: "#ff4444",
     formType: "note",
   },
-  medicine: {
-    id: "medicine",
+  Medicamento: {
+    id: "Medicamento",
     label: "Medicamento",
     icon: Pill,
     color: "#ff9966",

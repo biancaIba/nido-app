@@ -2,15 +2,15 @@ import { Timestamp } from "firebase/firestore";
 import { BaseModel, NewDocument } from "@/lib/types";
 
 export type EventCategory =
-  | "food"
-  | "sleep"
-  | "diaper"
-  | "activity"
-  | "incident"
-  | "medicine";
+  | "Comida"
+  | "Sueño"
+  | "Baño"
+  | "Actividad"
+  | "Incidente"
+  | "Medicamento";
 
 export interface FoodDetails {
-  mealType: "breakfast" | "lunch" | "snack";
+  mealType: "Desayuno" | "Almuerzo" | "Merienda";
   description?: string;
 }
 
@@ -20,7 +20,7 @@ export interface SleepDetails {
 }
 
 export interface DiaperDetails {
-  type: "pee" | "poo" | "both";
+  type: "Pis" | "Popó" | "Ambos";
   observation?: string;
 }
 
@@ -41,12 +41,12 @@ interface EventBase extends BaseModel {
 
 export type Event = EventBase &
   (
-    | { category: "food"; details: FoodDetails }
-    | { category: "sleep"; details: SleepDetails }
-    | { category: "diaper"; details: DiaperDetails }
-    | { category: "activity"; details: NoteDetails }
-    | { category: "incident"; details: NoteDetails }
-    | { category: "medicine"; details: MedicineDetails }
+    | { category: "Comida"; details: FoodDetails }
+    | { category: "Sueño"; details: SleepDetails }
+    | { category: "Baño"; details: DiaperDetails }
+    | { category: "Actividad"; details: NoteDetails }
+    | { category: "Incidente"; details: NoteDetails }
+    | { category: "Medicamento"; details: MedicineDetails }
   );
 export interface LastEventSummary {
   category: EventCategory;

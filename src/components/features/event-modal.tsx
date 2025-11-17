@@ -125,10 +125,10 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
 
     try {
       switch (selectedCategory) {
-        case "food":
+        case "Comida":
           if (!formData.detailId) throw new Error("Meal type is required");
           payload = {
-            category: "food",
+            category: "Comida",
             eventTime: eventTimestamp,
             details: {
               mealType: formData.detailId as FoodDetails["mealType"],
@@ -136,21 +136,21 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
             },
           };
           break;
-        case "sleep":
+        case "Sueño":
           const sleepDetails: SleepDetails = { startTime: eventTimestamp };
           if (formData.endTime) {
             sleepDetails.endTime = timeStringToTimestamp(formData.endTime);
           }
           payload = {
-            category: "sleep",
+            category: "Sueño",
             eventTime: Timestamp.now(), // Log time is always 'now'
             details: sleepDetails,
           };
           break;
-        case "diaper":
+        case "Baño":
           if (!formData.detailId) throw new Error("Diaper type is required");
           payload = {
-            category: "diaper",
+            category: "Baño",
             eventTime: eventTimestamp,
             details: {
               type: formData.detailId as DiaperDetails["type"],
@@ -158,11 +158,11 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
             },
           };
           break;
-        case "medicine":
+        case "Medicamento":
           if (!formData.medicineName || !formData.medicineDose)
             throw new Error("Medicine name and dose are required");
           payload = {
-            category: "medicine",
+            category: "Medicamento",
             eventTime: eventTimestamp,
             details: {
               name: formData.medicineName,
@@ -170,14 +170,14 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
             },
           };
           break;
-        case "activity":
+        case "Actividad":
           payload = {
-            category: "activity",
+            category: "Actividad",
             eventTime: eventTimestamp,
             details: {},
           };
           break;
-        case "incident":
+        case "Incidente":
           payload = {
             category: selectedCategory,
             eventTime: eventTimestamp,
@@ -237,13 +237,13 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
               </Label>
               <Textarea
                 value={
-                  selectedCategory === "food"
+                  selectedCategory === "Comida"
                     ? formData.foodDescription
                     : formData.diaperObservation
                 }
                 onChange={(e) =>
                   handleInputChange(
-                    selectedCategory === "food"
+                    selectedCategory === "Comida"
                       ? "foodDescription"
                       : "diaperObservation",
                     e.target.value
@@ -256,10 +256,13 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
           </div>
         );
       case "custom":
-        if (selectedCategory === "sleep") {
+        if (selectedCategory === "Sueño") {
           return (
             <div className="space-y-4">
-              <Label htmlFor="endTime">Hora de Fin (Opcional)</Label>
+              <Label className="block mb-2">
+                Hora de Fin{" "}
+                <span className="text-shark-gray-500 text-sm">-Opcional-</span>
+              </Label>
               <Input
                 id="endTime"
                 type="time"
@@ -269,7 +272,7 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
             </div>
           );
         }
-        if (selectedCategory === "medicine") {
+        if (selectedCategory === "Medicamento") {
           return (
             <div className="space-y-4">
               <Label htmlFor="medicineName">Nombre del Medicamento</Label>
@@ -313,7 +316,7 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
             </button>
           )}
           <SheetTitle className="text-center">
-            {selectedCategory ? "Detalles" : "Categoría"}
+            {selectedCategory ? selectedCategory : "Categoría"}
           </SheetTitle>
         </SheetHeader>
 
@@ -347,7 +350,7 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
             <div className="space-y-6">
               <div>
                 <Label htmlFor="time" className="mb-2 block text-base">
-                  {selectedCategory === "sleep"
+                  {selectedCategory === "Sueño"
                     ? "Hora de Inicio"
                     : "Hora del Evento"}
                 </Label>
@@ -372,7 +375,7 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
                 disabled={isSubmitting}
                 className="w-full h-12 bg-lightning-yellow-600 hover:bg-lightning-yellow-600/90 text-white disabled:opacity-50"
               >
-                {isSubmitting ? "Registrando..." : "Registrar Evento"}
+                {isSubmitting ? "Registrando..." : "Registrar"}
               </Button>
             </div>
           )}

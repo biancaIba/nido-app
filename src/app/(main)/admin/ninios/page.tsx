@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Users } from "lucide-react";
+import { Edit, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Child, Classroom } from "@/lib/types";
@@ -78,16 +78,6 @@ export default function NiniosPage() {
 
   return (
     <div className="min-h-screen bg-shark-gray-50 pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 border-b bg-white shadow-sm">
-        <div className="px-4 py-4 flex items-center justify-between">
-          <h1 className="text-shark-gray-900">Niños</h1>
-          <Button variant="secondary" onClick={() => setIsAddingChild(true)}>
-            <Plus className="h-10 w-10" />
-          </Button>
-        </div>
-      </div>
-
       {/* Grouped Children List */}
       <div className="space-y-6 px-4 py-4">
         {Object.keys(groupedChildren).map((classroomId) => (
@@ -125,7 +115,13 @@ export default function NiniosPage() {
                         </p>
                       </div>
                     </div>
-                    <Users className="h-5 w-5 text-shark-gray-900/40" />
+                    <button
+                      onClick={() => {
+                        /* TODO: Implement edit functionality */
+                      }}
+                    >
+                      <Edit className="h-5 w-5 text-shark-gray-400" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -133,6 +129,14 @@ export default function NiniosPage() {
           </div>
         ))}
       </div>
+
+      {/* Floating Action Button */}
+      <Button
+        onClick={() => setIsAddingChild(true)}
+        className="fixed bottom-24 right-4 h-14 w-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
     </div>
   );
 }

@@ -73,16 +73,6 @@ export default function SalasPage() {
 
   return (
     <div className="min-h-screen bg-shark-gray-50 pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 border-b bg-white shadow-sm">
-        <div className="px-4 py-4 flex items-center justify-between">
-          <h1 className="text-shark-gray-900">Salas</h1>
-          <Button variant="secondary" onClick={() => setIsDialogOpen(true)}>
-            <Plus className="h-6 w-6" />
-          </Button>
-        </div>
-      </div>
-
       {/* Classrooms List */}
       <div className="space-y-3 px-4 py-4">
         {classrooms.map((classroom) => (
@@ -107,6 +97,14 @@ export default function SalasPage() {
           </div>
         ))}
       </div>
+
+      {/* Floating Action Button */}
+      <Button
+        onClick={() => setIsDialogOpen(true)}
+        className="fixed bottom-24 right-4 h-14 w-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
 
       {/* Add Classroom Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

@@ -46,8 +46,7 @@ export type EventFormPayload = Omit<
 interface FormData {
   eventTime: string;
   detailId: string; // For 'simple' forms (food, diaper)
-  foodDescription: string;
-  diaperObservation: string;
+  comments: string; // Unified comments field
   endTime: string; // For 'sleep'
   medicineName: string;
   medicineDose: string;
@@ -132,7 +131,7 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
             eventTime: eventTimestamp,
             details: {
               mealType: formData.detailId as FoodDetails["mealType"],
-              description: formData.foodDescription || "",
+              description: formData.comments || "",
             },
           };
           break;
@@ -154,7 +153,7 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
             eventTime: eventTimestamp,
             details: {
               type: formData.detailId as DiaperDetails["type"],
-              observation: formData.diaperObservation || "",
+              observation: formData.comments || "",
             },
           };
           break;
@@ -167,6 +166,7 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
             details: {
               name: formData.medicineName,
               dose: formData.medicineDose,
+              description: formData.comments || "",
             },
           };
           break;
@@ -174,14 +174,14 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
           payload = {
             category: "Actividad",
             eventTime: eventTimestamp,
-            details: {},
+            details: { description: formData.comments || "" },
           };
           break;
         case "Incidente":
           payload = {
             category: selectedCategory,
             eventTime: eventTimestamp,
-            details: { description: formData.noteDescription || "" },
+            details: { description: formData.comments || "" },
           };
           break;
         default:
@@ -229,29 +229,6 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
                   {detail.label}
                 </button>
               ))}
-            </div>
-            <div className="mt-6">
-              <Label className="block mb-2">
-                Comentarios{" "}
-                <span className="text-shark-gray-500 text-sm">-Opcional-</span>
-              </Label>
-              <Textarea
-                value={
-                  selectedCategory === "Comida"
-                    ? formData.foodDescription
-                    : formData.diaperObservation
-                }
-                onChange={(e) =>
-                  handleInputChange(
-                    selectedCategory === "Comida"
-                      ? "foodDescription"
-                      : "diaperObservation",
-                    e.target.value
-                  )
-                }
-                placeholder="Más información sobre el evento..."
-                className="min-h-30"
-              />
             </div>
           </div>
         );
@@ -365,9 +342,25 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
                 />
               </div>
 
+              {renderCategoryForm()}
+
+              {/* --- Unified Comments Section --- */}
               <div>
-                <Label className="mb-2 block text-base">Detalles</Label>
-                {renderCategoryForm()}
+                <Label htmlFor="comments" className="mb-2 block text-base">
+                  Comentarios{" "}
+                  <span className="text-shark-gray-500 text-sm">
+                    - Opcional -
+                  </span>
+                </Label>
+                <Textarea
+                  id="comments"
+                  value={formData.comments || ""}
+                  onChange={(e) =>
+                    handleInputChange("comments", e.target.value)
+                  }
+                  placeholder="Agregá más información sobre el evento..."
+                  className="min-h-[80px]"
+                />
               </div>
 
               <Button

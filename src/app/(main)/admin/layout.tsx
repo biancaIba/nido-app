@@ -30,7 +30,7 @@ export default function AdminLayout({
               href={href}
               className={`flex flex-col items-center gap-1 rounded-lg px-4 py-2 transition-colors ${
                 pathname === href
-                  ? "text-blue-violet-500"
+                  ? "text-lightning-yellow-600"
                   : "text-shark-gray-900/60"
               }`}
             >

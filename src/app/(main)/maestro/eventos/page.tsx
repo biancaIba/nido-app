@@ -216,7 +216,7 @@ export default function TeacherDashboard() {
           className={`w-full h-10 ${
             selectionMode
               ? "bg-gray-600 hover:bg-gray-700"
-              : "bg-blue-violet-500 hover:bg-blue-violet-500/90"
+              : "bg-lightning-yellow-600 hover:bg-lightning-yellow-600/90"
           } text-white gap-2`}
         >
           {selectionMode ? (
@@ -259,7 +259,7 @@ export default function TeacherDashboard() {
           <Button
             onClick={handleGroupEventSubmit}
             disabled={selectedChildren.size === 0}
-            className="w-full h-12 bg-blue-violet-500 hover:bg-blue-violet-500/90 text-white"
+            className="w-full h-12 bg-lightning-yellow-600 hover:bg-lightning-yellow-600/90 text-white"
           >
             Cargar Evento para {selectedChildren.size} Alumnos
           </Button>

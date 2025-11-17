@@ -308,7 +308,10 @@ export function EventModal({
         <div className="flex items-center space-x-2">
           <div className="flex -space-x-2 overflow-hidden">
             {childrenData.slice(0, 10).map((child) => (
-              <Avatar key={child.id} className="bg-blue-violet-500 text-white">
+              <Avatar
+                key={child.id}
+                className="bg-lightning-yellow-600 text-white"
+              >
                 <AvatarImage src={child.avatarUrl} />
                 <AvatarFallback>
                   {child.firstName
@@ -420,7 +423,7 @@ export function EventModal({
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="w-full h-12 bg-blue-violet-500 hover:bg-blue-violet-500/90 text-white disabled:opacity-50"
+                className="w-full h-12 bg-lightning-yellow-600 hover:bg-lightning-yellow-600/90 text-white disabled:opacity-50"
               >
                 {isSubmitting ? "Registrando..." : "Registrar Evento"}
               </Button>

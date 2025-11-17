@@ -21,9 +21,7 @@ export default function RootGuardPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50">
-      <p className="text-lg font-medium text-blue-violet-600">
-        Verificando sesión...
-      </p>
+      <p className="text-lg font-medium">Verificando sesión...</p>
     </main>
   );
 }

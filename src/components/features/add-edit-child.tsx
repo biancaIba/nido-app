@@ -114,7 +114,7 @@ export function AddEditChild({
         <div className="space-y-3">
           <Label>Elige un Avatar</Label>
           <div className="flex justify-center">
-            <Avatar className="h-24 w-24 border-4 border-blue-violet-500">
+            <Avatar className="h-24 w-24 border-4 border-lightning-yellow-600">
               <AvatarImage src={formData.avatarUrl} alt="Avatar seleccionado" />
               <AvatarFallback className="text-3xl">
                 {formData.firstName?.charAt(0).toUpperCase() ||
@@ -133,7 +133,7 @@ export function AddEditChild({
                 }
                 className={`rounded-full transition-all ${
                   formData.avatarUrl === avatarSrc
-                    ? "ring-2 ring-blue-violet-500 ring-offset-2"
+                    ? "ring-2 ring-lightning-yellow-600 ring-offset-2"
                     : "hover:scale-105"
                 }`}
               >
@@ -204,7 +204,7 @@ export function AddEditChild({
         <Button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="w-full bg-blue-violet-500 hover:bg-blue-violet-500/90"
+          className="w-full bg-lightning-yellow-600 hover:bg-lightning-yellow-600/90"
         >
           {isSubmitting ? "Guardando..." : "Guardar Alumno"}
         </Button>

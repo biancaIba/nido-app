@@ -105,7 +105,7 @@ export default function NiniosPage() {
                     <div className="flex items-center gap-3">
                       <Avatar
                         key={child.id}
-                        className="bg-blue-violet-500 text-white"
+                        className="bg-lightning-yellow-600 text-white"
                       >
                         <AvatarImage src={child.avatarUrl} />
                         <AvatarFallback>

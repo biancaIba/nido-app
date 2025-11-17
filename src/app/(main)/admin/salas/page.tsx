@@ -92,8 +92,8 @@ export default function SalasPage() {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-violet-500/10">
-                  <School className="h-6 w-6 text-blue-violet-500" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-lightning-yellow-600/10">
+                  <School className="h-6 w-6 text-lightning-yellow-600" />
                 </div>
                 <div>
                   <h3 className="text-shark-gray-900">{classroom.name}</h3>

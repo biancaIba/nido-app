@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ArrowLeft } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { createAvatar } from "@dicebear/core";
 import { adventurer } from "@dicebear/collection";
@@ -9,7 +9,6 @@ import { adventurer } from "@dicebear/collection";
 import {
   Button,
   Input,
-  Label,
   Select,
   SelectContent,
   SelectItem,
@@ -53,6 +52,8 @@ export function AddEditChild({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [parentEmails, setParentEmails] = useState<string[]>([""]);
+
   const avatarOptions = useMemo(() => {
     return Array.from({ length: 6 }, () =>
       generateAvatarUrl(Math.random().toString(36).substring(7))
@@ -70,6 +71,21 @@ export function AddEditChild({
 
   const handleClassroomChange = (value: string) => {
     setFormData((prev) => ({ ...prev, classroomId: value }));
+  };
+
+  const handleAddParentEmail = () => {
+    setParentEmails([...parentEmails, ""]);
+  };
+
+  const handleRemoveParentEmail = (index: number) => {
+    const newEmails = parentEmails.filter((_, i) => i !== index);
+    setParentEmails(newEmails);
+  };
+
+  const handleEmailChange = (index: number, value: string) => {
+    const newEmails = [...parentEmails];
+    newEmails[index] = value;
+    setParentEmails(newEmails);
   };
 
   const handleSubmit = async () => {
@@ -100,19 +116,10 @@ export function AddEditChild({
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center gap-4 border-b bg-white p-4 shadow-sm">
-        <Button variant="ghost" size="icon" onClick={onBack}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-lg font-medium">Añadir Alumno</h1>
-      </div>
-
       {/* Form */}
       <div className="space-y-6 p-4 pb-24">
         {/* Avatar Selection */}
-        <div className="space-y-3">
-          <Label>Elige un Avatar</Label>
+        <div>
           <div className="flex justify-center">
             <Avatar className="h-24 w-24 border-4 border-lightning-yellow-600">
               <AvatarImage src={formData.avatarUrl} alt="Avatar seleccionado" />
@@ -146,8 +153,8 @@ export function AddEditChild({
         </div>
 
         {/* Form Fields */}
-        <div className="space-y-2">
-          <Label htmlFor="firstName">Nombre</Label>
+        <div>
+          <h3 className="text-shark-gray-900 mb-2">Nombre</h3>
           <Input
             id="firstName"
             name="firstName"
@@ -157,8 +164,8 @@ export function AddEditChild({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="lastName">Apellido</Label>
+        <div>
+          <h3 className="text-shark-gray-900 mb-2">Apellido</h3>
           <Input
             id="lastName"
             name="lastName"
@@ -168,8 +175,8 @@ export function AddEditChild({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="dateOfBirth">Fecha de Nacimiento</Label>
+        <div>
+          <h3 className="text-shark-gray-900 mb-2">Fecha de Nacimiento</h3>
           <Input
             id="dateOfBirth"
             name="dateOfBirth"
@@ -179,14 +186,17 @@ export function AddEditChild({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="classroomId">Sala</Label>
+        <div>
+          <h3 className="text-shark-gray-900 mb-2">Sala</h3>
           <Select
             value={formData.classroomId}
             onValueChange={handleClassroomChange}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecciona una sala" />
+              <SelectValue
+                placeholder="Selecciona una sala"
+                className="text-sm"
+              />
             </SelectTrigger>
             <SelectContent>
               {classrooms.map((room) => (
@@ -197,16 +207,60 @@ export function AddEditChild({
             </SelectContent>
           </Select>
         </div>
+
+        {/* Section 2: Assign Parents */}
+        <div>
+          <h3 className="text-shark-gray-900 mb-2">Tutores</h3>
+          <p className="text-sm text-shark-gray-900/60 mb-4">
+            Ingrese los correos electrónicos de los tutores. Recibirán una
+            invitación por correo para descargar la aplicación.
+          </p>
+
+          <div className="space-y-3">
+            {parentEmails.map((email, index) => (
+              <div key={index} className="flex gap-2">
+                <div className="flex-1">
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => handleEmailChange(index, e.target.value)}
+                    placeholder={`Correo Electrónico`}
+                  />
+                </div>
+                {parentEmails.length > 1 && (
+                  <Button
+                    variant="outline"
+                    onClick={() => handleRemoveParentEmail(index)}
+                  >
+                    <Trash2 className="h-8 w-8 text-carnation-500" />
+                  </Button>
+                )}
+              </div>
+            ))}
+
+            <Button
+              variant="outline"
+              onClick={handleAddParentEmail}
+              className="w-full h-12 gap-2"
+            >
+              <Plus className="h-5 w-5" />
+              Agregar
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Footer Action */}
-      <div className="fixed bottom-0 left-0 right-0 border-t bg-white p-4">
+      <div className="fixed bottom-21 left-0 right-0 bg-white p-4 flex items-center">
+        <Button variant="outline" onClick={onBack} className="mr-2">
+          Cancelar
+        </Button>
         <Button
           onClick={handleSubmit}
           disabled={isSubmitting}
           className="w-full bg-lightning-yellow-600 hover:bg-lightning-yellow-600/90"
         >
-          {isSubmitting ? "Guardando..." : "Guardar Alumno"}
+          {isSubmitting ? "Guardando..." : "Guardar"}
         </Button>
       </div>
     </div>

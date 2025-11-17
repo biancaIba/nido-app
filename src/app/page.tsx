@@ -12,7 +12,7 @@ export default function RootGuardPage() {
   useEffect(() => {
     if (!loading) {
       if (user) {
-        router.replace("/teacher/dashboard");
+        router.replace("/maestro/eventos");
       } else {
         router.replace("/ingresar");
       }

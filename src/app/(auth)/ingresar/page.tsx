@@ -19,7 +19,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/teacher/dashboard");
+      router.replace("/maestro/eventos");
     }
   }, [user, loading, router]);
 

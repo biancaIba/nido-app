@@ -18,7 +18,7 @@ export default function Register() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/teacher/dashboard");
+      router.replace("/maestro/eventos");
     }
   }, [user, loading, router]);
 
@@ -34,7 +34,7 @@ export default function Register() {
     if (user) {
       setEmail("");
       setPassword("");
-      router.push("/teacher/dashboard");
+      router.push("/maestro/eventos");
     }
   };
 

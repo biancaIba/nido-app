@@ -7,7 +7,6 @@ import { toast } from "sonner";
 
 import { EVENTS_CONFIG } from "@/config";
 import {
-  Child,
   EventCategory,
   FoodDetails,
   DiaperDetails,
@@ -24,9 +23,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
 } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -81,18 +77,12 @@ function timeStringToTimestamp(timeStr: string): Timestamp {
 interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
-  childrenData: Child[];
   onSubmit: (payload: EventFormPayload) => Promise<void>;
 }
 
 // --- Main Component ---
 
-export function EventModal({
-  isOpen,
-  onClose,
-  childrenData,
-  onSubmit,
-}: EventModalProps) {
+export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
   // This state now controls which step we are on.
   // null = Step 1 (Category Selection)
   // EventCategory = Step 2 (Details Form)
@@ -181,6 +171,12 @@ export function EventModal({
           };
           break;
         case "activity":
+          payload = {
+            category: "activity",
+            eventTime: eventTimestamp,
+            details: {},
+          };
+          break;
         case "incident":
           payload = {
             category: selectedCategory,
@@ -234,23 +230,29 @@ export function EventModal({
                 </button>
               ))}
             </div>
-            <Textarea
-              value={
-                selectedCategory === "food"
-                  ? formData.foodDescription
-                  : formData.diaperObservation
-              }
-              onChange={(e) =>
-                handleInputChange(
+            <div className="mt-6">
+              <Label className="block mb-2">
+                Comentarios{" "}
+                <span className="text-shark-gray-500 text-sm">-Opcional-</span>
+              </Label>
+              <Textarea
+                value={
                   selectedCategory === "food"
-                    ? "foodDescription"
-                    : "diaperObservation",
-                  e.target.value
-                )
-              }
-              placeholder="Comentarios (Opcional)..."
-              className="min-h-30"
-            />
+                    ? formData.foodDescription
+                    : formData.diaperObservation
+                }
+                onChange={(e) =>
+                  handleInputChange(
+                    selectedCategory === "food"
+                      ? "foodDescription"
+                      : "diaperObservation",
+                    e.target.value
+                  )
+                }
+                placeholder="Más información sobre el evento..."
+                className="min-h-30"
+              />
+            </div>
           </div>
         );
       case "custom":
@@ -295,59 +297,6 @@ export function EventModal({
       default:
         return null;
     }
-  };
-
-  const renderConfirmationHeader = () => {
-    if (!selectedCategory) return null;
-    const config = EVENTS_CONFIG[selectedCategory];
-    const Icon = config.icon;
-
-    return (
-      <div className="p-3 bg-gray-50 rounded-lg space-y-3">
-        {/* --- Avatars --- */}
-        <div className="flex items-center space-x-2">
-          <div className="flex -space-x-2 overflow-hidden">
-            {childrenData.slice(0, 10).map((child) => (
-              <Avatar
-                key={child.id}
-                className="bg-lightning-yellow-600 text-white"
-              >
-                <AvatarImage src={child.avatarUrl} />
-                <AvatarFallback>
-                  {child.firstName
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            ))}
-          </div>
-          {childrenData.length > 3 && (
-            <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 ring-2 ring-white">
-              +{childrenData.length - 3}
-            </div>
-          )}
-          <span className="text-sm text-gray-600 font-medium">
-            {childrenData.length > 1
-              ? `${childrenData.length} alumnos`
-              : `${childrenData[0]?.firstName} ${childrenData[0]?.lastName}`}
-          </span>
-        </div>
-        {/* --- Category --- */}
-        <div className="flex items-center space-x-2">
-          <div
-            className="h-8 w-8 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: `${config.color}20` }}
-          >
-            <Icon className="h-5 w-5" style={{ color: config.color }} />
-          </div>
-          <span className="text-sm font-medium text-gray-800">
-            {config.label}
-          </span>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -396,8 +345,6 @@ export function EventModal({
           ) : (
             // --- STEP 2: Details Form ---
             <div className="space-y-6">
-              {renderConfirmationHeader()}
-
               <div>
                 <Label htmlFor="time" className="mb-2 block text-base">
                   {selectedCategory === "sleep"

@@ -215,7 +215,7 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
                   key={detail.id}
                   onClick={() => handleInputChange("detailId", detail.id)}
                   className={cn(
-                    "px-4 py-2 rounded-full text-sm transition-all",
+                    "px-4 py-2 rounded-full transition-all",
                     formData.detailId === detail.id
                       ? "text-white shadow-md"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"

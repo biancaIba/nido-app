@@ -2,15 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Baby, Home, School, UsersRound as UsersRoundIcon } from "lucide-react";
+import { PackageSearch, PenLine, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/admin", label: "Inicio", icon: Home },
-  { href: "/admin/salas", label: "Salas", icon: School },
-  { href: "/admin/ninios", label: "Niños", icon: Baby },
-  { href: "/admin/personal", label: "Personal", icon: UsersRoundIcon },
+  { href: "/maestro/bitacora", label: "Bitácora", icon: PackageSearch },
+  { href: "/maestro/eventos", label: "Eventos", icon: PenLine },
+  { href: "/maestro/perfil", label: "Perfil", icon: User },
 ];
 
 export default function AdminLayout({
@@ -19,6 +18,8 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+
+  // todo: add active state to the icons based on the current pathname
 
   return (
     <div className="flex min-h-screen flex-col">

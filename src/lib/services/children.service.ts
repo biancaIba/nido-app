@@ -54,9 +54,7 @@ export const createChild = async (
     const docData = {
       ...childData,
       dateOfBirth: dateOfBirthTimestamp, // Use the converted Timestamp
-      avatarUrl: `https://avatar.vercel.sh/${childData.firstName}.png`,
       parentIds: [],
-      lastEvent: null,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       createdBy: adminId,
@@ -69,7 +67,6 @@ export const createChild = async (
       id: childRef.id,
       ...childData,
       dateOfBirth: dateOfBirthTimestamp,
-      avatarUrl: docData.avatarUrl,
       parentIds: [],
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -138,7 +135,7 @@ export const getChildrenByIds = async (ids: string[]): Promise<Child[]> => {
     const q = query(childrenCollection, where(documentId(), "in", ids));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(
-      (doc) => ({ id: doc.id, ...doc.data() } as Child)
+      (doc) => ({ id: doc.id, ...doc.data() }) as Child
     );
   } catch (error) {
     console.error("[children.service] Error getting children by IDs: ", error);

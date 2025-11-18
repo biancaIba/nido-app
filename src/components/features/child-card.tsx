@@ -1,38 +1,17 @@
 import { Check } from "lucide-react";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  Badge,
-  Card,
-} from "@/components/ui";
+import { Avatar, AvatarFallback, AvatarImage, Card } from "@/components/ui";
 import { Child } from "@/lib/types";
 
 interface ChildCardProps {
   child: Child;
-  lastEvent?: {
-    type: string;
-    time: string;
-    color: string;
-  };
   isSelected?: boolean;
   selectionMode?: boolean;
   onClick?: () => void;
 }
 
-const EVENT_ICONS: { [key: string]: string } = {
-  Comida: "🍎",
-  Siesta: "🌙",
-  Baño: "🚽",
-  Actividad: "🎨",
-  Incidente: "🚨",
-  Medicamento: "💊",
-};
-
 export function ChildCard({
   child,
-  lastEvent,
   isSelected,
   selectionMode,
   onClick,
@@ -65,22 +44,6 @@ export function ChildCard({
         <div className="text-center w-full">
           <p className="text-shark-gray-900 truncate px-1">{child.firstName}</p>
         </div>
-
-        {lastEvent && (
-          <Badge
-            variant="secondary"
-            className="text-xs px-2 py-1 w-full justify-center"
-            style={{
-              backgroundColor: `${lastEvent.color}20`,
-              color: lastEvent.color,
-            }}
-          >
-            <span className="mr-1">{EVENT_ICONS[lastEvent.type]}</span>
-            <span className="truncate">
-              {lastEvent.type} - {lastEvent.time}
-            </span>
-          </Badge>
-        )}
       </div>
     </Card>
   );

@@ -49,10 +49,9 @@ export function AddEditChild({
     dateOfBirth: "",
     classroomId: "",
     avatarUrl: "",
+    authorizedEmails: [""],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [parentEmails, setParentEmails] = useState<string[]>([""]);
 
   const avatarOptions = useMemo(() => {
     return Array.from({ length: 6 }, () =>
@@ -74,28 +73,41 @@ export function AddEditChild({
   };
 
   const handleAddParentEmail = () => {
-    setParentEmails([...parentEmails, ""]);
+    setFormData((prev) => ({
+      ...prev,
+      authorizedEmails: [...prev.authorizedEmails, ""],
+    }));
   };
 
   const handleRemoveParentEmail = (index: number) => {
-    const newEmails = parentEmails.filter((_, i) => i !== index);
-    setParentEmails(newEmails);
+    setFormData((prev) => ({
+      ...prev,
+      authorizedEmails: prev.authorizedEmails.filter((_, i) => i !== index),
+    }));
   };
 
   const handleEmailChange = (index: number, value: string) => {
-    const newEmails = [...parentEmails];
+    const newEmails = [...formData.authorizedEmails];
     newEmails[index] = value;
-    setParentEmails(newEmails);
+    setFormData((prev) => ({ ...prev, authorizedEmails: newEmails }));
   };
 
   const handleSubmit = async () => {
+    // 1. Asegurarse de que el usuario (el admin) esté cargado antes de continuar.
+    if (!user) {
+      toast.error(
+        "No se pudo verificar al administrador. Por favor, recarga la página."
+      );
+      return;
+    }
+
     if (
       !formData.firstName ||
       !formData.lastName ||
       !formData.dateOfBirth ||
       !formData.classroomId ||
       !formData.avatarUrl ||
-      !user?.uid
+      formData.authorizedEmails.some((email) => email.trim() === "")
     ) {
       toast.error("Por favor, completa todos los campos requeridos.");
       return;
@@ -217,7 +229,7 @@ export function AddEditChild({
           </p>
 
           <div className="space-y-3">
-            {parentEmails.map((email, index) => (
+            {formData.authorizedEmails.map((email, index) => (
               <div key={index} className="flex gap-2">
                 <div className="flex-1">
                   <Input
@@ -227,7 +239,7 @@ export function AddEditChild({
                     placeholder={`Correo Electrónico`}
                   />
                 </div>
-                {parentEmails.length > 1 && (
+                {formData.authorizedEmails.length > 1 && (
                   <Button
                     variant="outline"
                     onClick={() => handleRemoveParentEmail(index)}

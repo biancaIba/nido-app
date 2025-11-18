@@ -10,7 +10,7 @@ const navItems = [
   { href: "/admin", label: "Inicio", icon: Home },
   { href: "/admin/salas", label: "Salas", icon: School },
   { href: "/admin/ninios", label: "Niños", icon: Baby },
-  { href: "/admin/personal", label: "Personal", icon: UsersRoundIcon },
+  { href: "/admin/usuarios", label: "Usuarios", icon: UsersRoundIcon },
 ];
 
 export default function AdminLayout({

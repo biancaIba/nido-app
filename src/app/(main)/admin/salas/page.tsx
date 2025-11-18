@@ -33,7 +33,7 @@ export default function SalasPage() {
         const fetchedClassrooms = await getClassrooms();
         setClassrooms(fetchedClassrooms);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         toast.error("Error al cargar las salas.");
       } finally {
         setIsLoading(false);
@@ -56,7 +56,7 @@ export default function SalasPage() {
       setIsDialogOpen(false);
       toast.success(`Sala "${newClassroomName}" creada exitosamente.`);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error("No se pudo crear la sala.");
     } finally {
       setIsSubmitting(false);
@@ -88,7 +88,7 @@ export default function SalasPage() {
                 <div>
                   <h3 className="text-shark-gray-900">{classroom.name}</h3>
                   <p className="text-sm text-shark-gray-900/60">
-                    {/* TODO: Implement student count */}0 alumnos
+                    {/* TODO: Implement student count */}0 niños
                   </p>
                 </div>
               </div>

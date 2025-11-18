@@ -53,14 +53,13 @@ export default function ParentDashboard() {
     const fetchChildren = async () => {
       try {
         const childrenData = await getChildrenByIds(user.childrenIds!);
-        console.log(childrenData);
         setAllChildren(childrenData);
         if (childrenData.length > 0) {
           setSelectedChildId(childrenData[0].id); // Seleccionar el primer hijo por defecto
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        setError("No se pudo cargar la lista de alumnos.");
+        setError("No se pudo cargar la lista de niños.");
       }
     };
 

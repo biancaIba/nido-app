@@ -44,7 +44,7 @@ export default function NiniosPage() {
         setChildren(fetchedChildren);
         setClassrooms(fetchedClassrooms);
       } catch (error) {
-        console.log("Error fetching data:", error);
+        console.error("Error fetching data:", error);
         toast.error("Error al cargar los datos.");
       } finally {
         setIsLoading(false);

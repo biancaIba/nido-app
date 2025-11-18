@@ -31,7 +31,7 @@ export const getAllChildren = async (): Promise<Child[]> => {
     return children;
   } catch (error) {
     console.error("[children.service] Error fetching all children: ", error);
-    throw new Error("No se pudieron obtener los alumnos.");
+    throw new Error("No se pudieron obtener los niños.");
   }
 };
 
@@ -100,7 +100,7 @@ export const getChildrenByClassroomId = async (
     return children;
   } catch (error) {
     console.error("[children.service] Error getting children: ", error);
-    throw new Error("No se pudieron obtener los alumnos de la sala.");
+    throw new Error("No se pudieron obtener los niños de la sala.");
   }
 };
 
@@ -142,6 +142,6 @@ export const getChildrenByIds = async (ids: string[]): Promise<Child[]> => {
     );
   } catch (error) {
     console.error("[children.service] Error getting children by IDs: ", error);
-    throw new Error("No se pudo obtener la información de los alumnos.");
+    throw new Error("No se pudo obtener la información de los niños.");
   }
 };

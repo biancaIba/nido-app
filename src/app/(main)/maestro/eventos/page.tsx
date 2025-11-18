@@ -71,7 +71,7 @@ export default function TeacherDashboard() {
         );
         setChildren(fetchedChildren);
       } catch (error) {
-        setError("No se pudieron cargar los alumnos.");
+        setError("No se pudieron cargar los niños.");
       } finally {
         setIsLoading(false);
       }
@@ -261,7 +261,7 @@ export default function TeacherDashboard() {
             disabled={selectedChildren.size === 0}
             className="w-full h-12 bg-lightning-yellow-600 hover:bg-lightning-yellow-600/90 text-white"
           >
-            Cargar Evento para {selectedChildren.size} Alumnos
+            Cargar Evento para {selectedChildren.size} Niños
           </Button>
         </div>
       )}

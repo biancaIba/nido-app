@@ -1,22 +1,29 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
 import {
-  User as FirebaseAuthUser,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+import {
   onAuthStateChanged,
-  GoogleAuthProvider,
   signInWithPopup,
+  GoogleAuthProvider,
   signOut,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  AuthError,
+  User as FirebaseAuthUser,
 } from "firebase/auth";
-import { auth } from "@/config/index";
+import { Loader2 } from "lucide-react";
+
+import { auth } from "@/config";
 import { getUserById } from "@/lib/services";
-import type { User as AppUser } from "@/lib/types"; // Import our custom User type
+import { User as AppUser } from "@/lib/types";
 
 interface AuthContextType {
-  user: AppUser | null; // Use our custom AppUser type
+  user: AppUser | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   logOut: () => Promise<void>;
@@ -42,117 +49,92 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const signInWithGoogle = async () => {
-    setAuthError(null);
-    setLoading(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error("Error signing in with Google:", error);
-      setAuthError("Error al iniciar sesión con Google. Intente nuevamente.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signInWithEmail = async (
-    email: string,
-    password: string
-  ): Promise<FirebaseAuthUser | null> => {
-    setAuthError(null);
-    setLoading(true);
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      return userCredential.user;
-    } catch (error) {
-      const firebaseError = error as AuthError;
-      console.error(
-        "Error signing in with Email/Password:",
-        firebaseError.message
-      );
-
-      let errorMessage =
-        "Credenciales incorrectas. Verifique email y contraseña.";
-      if (firebaseError.code === "auth/user-not-found") {
-        errorMessage = "No existe una cuenta con este email.";
-      } else if (firebaseError.code === "auth/wrong-password") {
-        errorMessage = "La contraseña es incorrecta.";
-      }
-      setAuthError(errorMessage);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signUpWithEmail = async (
-    email: string,
-    password: string
-  ): Promise<FirebaseAuthUser | null> => {
-    setAuthError(null);
-    setLoading(true);
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
-      // TODO: Aquí es un buen lugar para agregar el usuario a Firestore
-      // The onAuthStateChanged listener will fire, but the user might not be in the DB yet.
-      // We need to call createUserInDb from the sign-up page *after* this function succeeds.
-
-      return userCredential.user;
-    } catch (error) {
-      const firebaseError = error as AuthError;
-      console.error(
-        "Error signing up with Email/Password:",
-        firebaseError.message
-      );
-
-      let errorMessage =
-        "Error al crear la cuenta. Intente con otro email o contraseña más segura.";
-      if (firebaseError.code === "auth/email-already-in-use") {
-        errorMessage = "El email ya está registrado.";
-      } else if (firebaseError.code === "auth/invalid-email") {
-        errorMessage = "El formato del email no es válido.";
-      } else if (firebaseError.code === "auth/weak-password") {
-        errorMessage = "La contraseña debe tener al menos 6 caracteres.";
-      }
-      setAuthError(errorMessage);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logOut = async () => {
-    setAuthError(null);
-    await signOut(auth);
-  };
-
-  // This effect now handles fetching the user profile from Firestore
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in, fetch their profile from Firestore
-        setLoading(true);
-        const userProfile = await getUserById(firebaseUser.uid);
-        setUser(userProfile); // Set our custom user object
-        setLoading(false);
-      } else {
-        // User is signed out
-        setUser(null);
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      async (firebaseUser: FirebaseAuthUser | null) => {
+        if (firebaseUser) {
+          // User is signed in, now fetch their full profile from Firestore.
+          const userProfile = await getUserById(firebaseUser.uid);
+          setUser(userProfile);
+        } else {
+          // User is signed out.
+          setUser(null);
+        }
         setLoading(false);
       }
-    });
+    );
 
     return () => unsubscribe();
+  }, []);
+
+  const handleAuthError = (error: unknown) => {
+    if (error instanceof Error) {
+      setAuthError(error.message);
+    } else {
+      setAuthError("An unknown error occurred.");
+    }
+    console.error(error);
+  };
+
+  const signInWithGoogle = useCallback(async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      setAuthError(null);
+    } catch (error) {
+      handleAuthError(error);
+    }
+  }, []);
+
+  const signInWithEmail = useCallback(
+    async (email: string, password: string) => {
+      try {
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        setAuthError(null);
+        return userCredential.user;
+      } catch (error) {
+        handleAuthError(error);
+        return null;
+      }
+    },
+    []
+  );
+
+  const signUpWithEmail = useCallback(
+    async (email: string, password: string) => {
+      try {
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+        // TODO: Aquí es un buen lugar para agregar el usuario a Firestore
+        // The onAuthStateChanged listener will fire, but the user might not be in the DB yet.
+        // We need to call createUserInDb from the sign-up page *after* this function succeeds.
+
+        setAuthError(null);
+        return userCredential.user;
+      } catch (error) {
+        handleAuthError(error);
+        return null;
+      }
+    },
+    []
+  );
+
+  const logOut = useCallback(async () => {
+    try {
+      await signOut(auth);
+      setAuthError(null);
+    } catch (error) {
+      handleAuthError(error);
+    }
   }, []);
 
   const value = {
@@ -164,6 +146,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signUpWithEmail,
     authError,
   };
+
+  // Show a global loader while we are verifying the user session.
+  if (loading) {
+    return (
+      <div className="flex flex-col h-screen w-full items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-shark-gray-400" />
+      </div>
+    );
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

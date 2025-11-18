@@ -1,0 +1,247 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import {
+  Mail,
+  Phone,
+  Calendar,
+  Briefcase,
+  Clock,
+  IdCard,
+  Users,
+  UserCircle,
+  Loader2,
+} from "lucide-react";
+
+import { Classroom } from "@/lib/types";
+import { useAuth } from "@/lib/hooks";
+import { getClassroomById } from "@/lib/services";
+import { Avatar, AvatarFallback, AvatarImage, Badge } from "@/components/ui";
+
+export default function MaestroPerfil() {
+  const { user, loading } = useAuth();
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+  const [isLoadingClassrooms, setIsLoadingClassrooms] = useState(true);
+
+  useEffect(() => {
+    // Store the classroomIds in a local constant.
+    const classroomIds = user?.teacherProfile?.classroomIds;
+
+    // Check if the array exists and has items.
+    if (classroomIds && classroomIds.length > 0) {
+      const fetchClassrooms = async () => {
+        setIsLoadingClassrooms(true);
+        // Now use the safe local constant 'classroomIds'.
+        const promises = classroomIds.map((id) => getClassroomById(id));
+        const fetchedClassrooms = await Promise.all(promises);
+        setClassrooms(fetchedClassrooms.filter(Boolean) as Classroom[]);
+        setIsLoadingClassrooms(false);
+      };
+      fetchClassrooms();
+    } else {
+      // If there are no classroomIds, we are done loading.
+      setIsLoadingClassrooms(false);
+    }
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="p-6 text-center text-red-500">
+        No se pudo cargar el perfil del usuario.
+      </div>
+    );
+  }
+
+  const fullName = `${user.firstName} ${user.lastName}`;
+  const initials = `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`;
+  const memberSince = user.createdAt
+    ? format(user.createdAt.toDate(), "yyyy")
+    : "";
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Main Content */}
+      <main className="flex-1 md:ml-0">
+        {/* Page Content */}
+        <div className="p-6 md:p-8 max-w-4xl mx-auto">
+          {/* Profile Hero Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+            {/* Header Background */}
+            <div className="h-24 bg-gradient-to-r from-sea-green-500/20 to-sea-green-500/10"></div>
+
+            {/* Profile Header Content */}
+            <div className="px-6 md:px-8 pb-6">
+              <div className="flex flex-col md:flex-row items-center md:items-end gap-4 -mt-12 md:-mt-16">
+                {/* Avatar */}
+                <div className="relative">
+                  <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-white shadow-lg">
+                    <AvatarImage src={user.avatarUrl} alt={fullName} />
+                    <AvatarFallback className="text-2xl">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+
+                {/* Name and Role */}
+                <div className="flex-1 text-center md:text-left md:ml-4 md:mb-2">
+                  <h1 className="text-gray-900 mb-2">{fullName}</h1>
+                  <div className="flex items-center justify-center md:justify-start gap-3">
+                    <Badge
+                      variant="outline"
+                      className="bg-sea-green-500/10 text-sea-green-500 border-sea-green-500/20"
+                    >
+                      Maestro/a
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className="bg-green-50 text-green-700 border-green-200"
+                    >
+                      <div className="h-2 w-2 rounded-full bg-green-500 mr-1.5"></div>
+                      Activo
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Information Grid */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Personal Information Card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-gray-900 mb-6 flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-sea-green-500/10 flex items-center justify-center">
+                  <UserCircle className="h-4 w-4 text-sea-green-500" />
+                </div>
+                Información Personal
+              </h2>
+
+              <div className="space-y-5">
+                {/* Email */}
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <Mail className="h-5 w-5 text-gray-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 mb-1">
+                      Correo Electrónico
+                    </p>
+                    <p className="text-gray-900 break-all">{user.email}</p>
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <Phone className="h-5 w-5 text-gray-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500 mb-1">Teléfono</p>
+                    <p className="text-gray-900">
+                      {user.teacherProfile?.phone}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Date of Birth */}
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <Calendar className="h-5 w-5 text-gray-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500 mb-1">
+                      Fecha de Nacimiento
+                    </p>
+                    <p className="text-gray-900">
+                      {user.teacherProfile?.dateOfBirth}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Professional Details Card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-gray-900 mb-6 flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-blue-violet-500/10 flex items-center justify-center">
+                  <Briefcase className="h-4 w-4 text-blue-violet-500" />
+                </div>
+                Detalles Profesionales
+              </h2>
+
+              <div className="space-y-5">
+                {/* Assigned Classroom */}
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <Users className="h-5 w-5 text-gray-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500 mb-1">Sala Asignada</p>
+                    <p className="text-gray-900">
+                      {isLoadingClassrooms
+                        ? "Cargando..."
+                        : classrooms.map((c) => c.name).join(", ")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Shift */}
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <Clock className="h-5 w-5 text-gray-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500 mb-1">Turno</p>
+                    <p className="text-gray-900">
+                      {user.teacherProfile?.shift}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Employee ID */}
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <IdCard className="h-5 w-5 text-gray-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500 mb-1">ID de Empleado</p>
+                    <p className="text-gray-600 text-sm">
+                      {user.teacherProfile?.employeeId}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Info Section (Optional) */}
+          <div className="mt-6 bg-sea-green-500/5 rounded-2xl p-6 border border-sea-green-500/10">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-lg bg-sea-green-500/10 flex items-center justify-center shrink-0">
+                <Calendar className="h-5 w-5 text-sea-green-500" />
+              </div>
+              <div>
+                <h3 className="text-gray-900 mb-1">
+                  Miembro desde {memberSince}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Has estado brindando cuidado excepcional a nuestros pequeños
+                  durante este tiempo. ¡Gracias por tu dedicación!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

@@ -24,6 +24,8 @@ import {
 } from "@/components/ui";
 
 export default function TeacherDashboard() {
+  const { user } = useAuth();
+
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedChildren, setSelectedChildren] = useState<Set<string>>(
     new Set()
@@ -36,8 +38,6 @@ export default function TeacherDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const { user } = useAuth();
 
   useEffect(() => {
     const fetchClassrooms = async () => {

@@ -49,6 +49,7 @@ function getEventDescription(event: Event): string {
       return `Tomó ${event.details.name} (dosis: ${event.details.dose})`;
     case "Actividad":
     case "Incidente":
+    case "Otro":
       return event.details.description || "";
     default:
       return "Evento registrado.";

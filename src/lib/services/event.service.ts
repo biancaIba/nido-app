@@ -166,6 +166,8 @@ function createEventSummaryDescription(payload: EventCreationPayload): string {
       return `Actividad: ${(payload.details as NoteDetails).description}`;
     case "Incidente":
       return `Incidente: ${(payload.details as NoteDetails).description}`;
+    case "Otro":
+      return `Otro: ${(payload.details as NoteDetails).description}`;
     default:
       return "Nuevo evento registrado.";
   }

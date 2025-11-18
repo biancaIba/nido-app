@@ -1,4 +1,12 @@
-import { AlertCircle, Apple, Baby, Moon, Palette, Pill } from "lucide-react";
+import {
+  AlertCircle,
+  Apple,
+  Baby,
+  MessageSquareText,
+  Moon,
+  Palette,
+  Pill,
+} from "lucide-react";
 import { EventCategory } from "@/lib/types";
 
 // Define the structure for simple detail options
@@ -70,5 +78,12 @@ export const EVENTS_CONFIG: Record<EventCategory, EventConfigItem> = {
     icon: Pill,
     color: "#ff9966",
     formType: "custom",
+  },
+  Otro: {
+    id: "Otro",
+    label: "Otro",
+    icon: MessageSquareText,
+    color: "#999999",
+    formType: "note",
   },
 };

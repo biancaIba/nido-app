@@ -7,7 +7,8 @@ export type EventCategory =
   | "Baño"
   | "Actividad"
   | "Incidente"
-  | "Medicamento";
+  | "Medicamento"
+  | "Otro";
 
 export interface FoodDetails {
   mealType: "Desayuno" | "Almuerzo" | "Merienda";
@@ -47,6 +48,7 @@ export type Event = EventBase &
     | { category: "Actividad"; details: NoteDetails }
     | { category: "Incidente"; details: NoteDetails }
     | { category: "Medicamento"; details: MedicineDetails }
+    | { category: "Otro"; details: NoteDetails }
   );
 export interface LastEventSummary {
   category: EventCategory;

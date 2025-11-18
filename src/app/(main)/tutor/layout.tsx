@@ -2,17 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PackageSearch, PenLine, User } from "lucide-react";
+import { PackageSearch, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/maestro/bitacora", label: "Bitácora", icon: PackageSearch },
-  { href: "/maestro/eventos", label: "Eventos", icon: PenLine },
-  { href: "/maestro/perfil", label: "Perfil", icon: User },
+  { href: "/tutor/bitacora", label: "Bitácora", icon: PackageSearch },
+  { href: "/tutor/perfil", label: "Perfil", icon: User },
 ];
 
-export default function MaestroLayout({
+export default function TutorLayout({
   children,
 }: {
   children: React.ReactNode;

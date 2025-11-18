@@ -76,7 +76,7 @@ export default function MaestroPerfil() {
           {/* Profile Hero Card */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-6">
             {/* Header Background */}
-            <div className="h-24 bg-gradient-to-r from-sea-green-500/20 to-sea-green-500/10"></div>
+            <div className="h-24 bg-gradient-to-r from-lightning-yellow-500/20 to-lightning-yellow-500/10"></div>
 
             {/* Profile Header Content */}
             <div className="px-6 md:px-8 pb-6">
@@ -85,7 +85,7 @@ export default function MaestroPerfil() {
                 <div className="relative">
                   <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-white shadow-lg">
                     <AvatarImage src={user.avatarUrl} alt={fullName} />
-                    <AvatarFallback className="text-2xl">
+                    <AvatarFallback className="text-2xl bg-white">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
@@ -95,19 +95,8 @@ export default function MaestroPerfil() {
                 <div className="flex-1 text-center md:text-left md:ml-4 md:mb-2">
                   <h1 className="text-gray-900 mb-2">{fullName}</h1>
                   <div className="flex items-center justify-center md:justify-start gap-3">
-                    <Badge
-                      variant="outline"
-                      className="bg-sea-green-500/10 text-sea-green-500 border-sea-green-500/20"
-                    >
-                      Maestro/a
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className="bg-green-50 text-green-700 border-green-200"
-                    >
-                      <div className="h-2 w-2 rounded-full bg-green-500 mr-1.5"></div>
-                      Activo
-                    </Badge>
+                    <Badge variant="purple">Maestro/a</Badge>
+                    <Badge variant="green">Activo</Badge>
                   </div>
                 </div>
               </div>
@@ -119,8 +108,8 @@ export default function MaestroPerfil() {
             {/* Personal Information Card */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-gray-900 mb-6 flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-sea-green-500/10 flex items-center justify-center">
-                  <UserCircle className="h-4 w-4 text-sea-green-500" />
+                <div className="h-8 w-8 rounded-lg bg-lightning-yellow-500/10 flex items-center justify-center">
+                  <UserCircle className="h-4 w-4 text-lightning-yellow-600" />
                 </div>
                 Información Personal
               </h2>
@@ -172,8 +161,8 @@ export default function MaestroPerfil() {
             {/* Professional Details Card */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-gray-900 mb-6 flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-blue-violet-500/10 flex items-center justify-center">
-                  <Briefcase className="h-4 w-4 text-blue-violet-500" />
+                <div className="h-8 w-8 rounded-lg bg-lightning-yellow-500/10 flex items-center justify-center">
+                  <Briefcase className="h-4 w-4 text-lightning-yellow-600" />
                 </div>
                 Detalles Profesionales
               </h2>
@@ -185,7 +174,9 @@ export default function MaestroPerfil() {
                     <Users className="h-5 w-5 text-gray-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs text-gray-500 mb-1">Sala Asignada</p>
+                    <p className="text-xs text-gray-500 mb-1">
+                      Salas Asignadas
+                    </p>
                     <p className="text-gray-900">
                       {isLoadingClassrooms
                         ? "Cargando..."
@@ -200,7 +191,7 @@ export default function MaestroPerfil() {
                     <Clock className="h-5 w-5 text-gray-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs text-gray-500 mb-1">Turno</p>
+                    <p className="text-xs text-gray-500 mb-1">Turnos</p>
                     <p className="text-gray-900">
                       {user.teacherProfile?.shift}
                     </p>
@@ -224,10 +215,10 @@ export default function MaestroPerfil() {
           </div>
 
           {/* Additional Info Section (Optional) */}
-          <div className="mt-6 bg-sea-green-500/5 rounded-2xl p-6 border border-sea-green-500/10">
+          <div className="mt-6 bg-lightning-yellow-500/5 rounded-2xl p-6 border border-lightning-yellow-500/10">
             <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-lg bg-sea-green-500/10 flex items-center justify-center shrink-0">
-                <Calendar className="h-5 w-5 text-sea-green-500" />
+              <div className="h-10 w-10 rounded-lg bg-lightning-yellow-500/10 flex items-center justify-center shrink-0">
+                <Calendar className="h-5 w-5 text-lightning-yellow-500" />
               </div>
               <div>
                 <h3 className="text-gray-900 mb-1">

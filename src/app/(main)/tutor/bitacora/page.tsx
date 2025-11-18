@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui";
+import { generateAvatarUrl } from "@/lib/utils";
 
 export default function ParentDashboard() {
   const { user } = useAuth();
@@ -143,7 +144,7 @@ export default function ParentDashboard() {
             key={selectedChild.id}
             className="bg-lightning-yellow-600 text-white"
           >
-            <AvatarImage src={selectedChild.avatarUrl} />
+            <AvatarImage src={generateAvatarUrl(selectedChild.avatarSeed)} />
             <AvatarFallback>
               {selectedChild.firstName
                 .split(" ")

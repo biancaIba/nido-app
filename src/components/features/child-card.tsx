@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage, Card } from "@/components/ui";
 import { Child } from "@/lib/types";
+import { generateAvatarUrl } from "@/lib/utils";
 
 interface ChildCardProps {
   child: Child;
@@ -31,7 +32,10 @@ export function ChildCard({
 
       <div className="flex flex-col items-center p-4 space-y-3">
         <Avatar className="h-20 w-20 border-4 border-white shadow-md">
-          <AvatarImage src={child.avatarUrl} alt={child.firstName} />
+          <AvatarImage
+            src={generateAvatarUrl(child.avatarSeed)}
+            alt={child.firstName}
+          />
           <AvatarFallback className="bg-lightning-yellow-600 text-white">
             {child.firstName
               .split(" ")

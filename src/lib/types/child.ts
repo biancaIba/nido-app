@@ -6,9 +6,11 @@ export interface Child extends BaseModel {
   firstName: string;
   lastName: string;
   dateOfBirth: Timestamp;
-  avatarUrl?: string;
+  avatarSeed: string;
   classroomId: string; // ID of the Classroom
   parentIds: string[]; // Array of User IDs (with role 'parent')
+  // Emails of parents invited but not yet registered/linked via UID
+  authorizedEmails: string[];
   lastEvent?: LastEventSummary; // Summary of the last event
 }
 
@@ -19,7 +21,7 @@ export interface Child extends BaseModel {
  */
 export type ChildFormData = Pick<
   Child,
-  "firstName" | "lastName" | "classroomId" | "avatarUrl"
+  "firstName" | "lastName" | "classroomId" | "avatarSeed" | "authorizedEmails"
 > & {
   dateOfBirth: string; // Use string for form input, will be converted to Timestamp on save
 };

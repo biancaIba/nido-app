@@ -3,9 +3,11 @@
 import { useState, useMemo } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { createAvatar } from "@dicebear/core";
-import { adventurer } from "@dicebear/collection";
 
+import { useAuth } from "@/lib/hooks";
+import { createChild } from "@/lib/services";
+import { generateAvatarUrl, generateRandomSeed } from "@/lib/utils";
+import { Classroom, ChildFormData, Child } from "@/lib/types";
 import {
   Button,
   Input,
@@ -18,18 +20,6 @@ import {
   AvatarImage,
   AvatarFallback,
 } from "@/components/ui";
-import { useAuth } from "@/lib/hooks";
-import { createChild } from "@/lib/services";
-import { Classroom, ChildFormData, Child } from "@/lib/types";
-
-// Helper to generate a DiceBear avatar URL
-const generateAvatarUrl = (seed: string) => {
-  return createAvatar(adventurer, {
-    seed,
-    size: 128,
-    radius: 50, // Makes it circular
-  }).toDataUri();
-};
 
 interface AddEditChildProps {
   onBack: () => void;
@@ -48,19 +38,17 @@ export function AddEditChild({
     lastName: "",
     dateOfBirth: "",
     classroomId: "",
-    avatarUrl: "",
+    avatarSeed: "",
     authorizedEmails: [""],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const avatarOptions = useMemo(() => {
-    return Array.from({ length: 6 }, () =>
-      generateAvatarUrl(Math.random().toString(36).substring(7))
-    );
+  const avatarSeedOptions = useMemo(() => {
+    return Array.from({ length: 6 }, () => generateRandomSeed());
   }, []);
 
-  if (!formData.avatarUrl && avatarOptions.length > 0) {
-    setFormData((prev) => ({ ...prev, avatarUrl: avatarOptions[0] }));
+  if (!formData.avatarSeed && avatarSeedOptions.length > 0) {
+    setFormData((prev) => ({ ...prev, avatarSeed: avatarSeedOptions[0] }));
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,7 +94,7 @@ export function AddEditChild({
       !formData.lastName ||
       !formData.dateOfBirth ||
       !formData.classroomId ||
-      !formData.avatarUrl ||
+      !formData.avatarSeed ||
       formData.authorizedEmails.some((email) => email.trim() === "")
     ) {
       toast.error("Por favor, completa todos los campos requeridos.");
@@ -134,7 +122,10 @@ export function AddEditChild({
         <div>
           <div className="flex justify-center">
             <Avatar className="h-24 w-24 border-4 border-lightning-yellow-600">
-              <AvatarImage src={formData.avatarUrl} alt="Avatar seleccionado" />
+              <AvatarImage
+                src={generateAvatarUrl(formData.avatarSeed)}
+                alt="Avatar seleccionado"
+              />
               <AvatarFallback className="text-3xl">
                 {formData.firstName?.charAt(0).toUpperCase() ||
                   formData.lastName?.charAt(0).toUpperCase() ||
@@ -143,21 +134,24 @@ export function AddEditChild({
             </Avatar>
           </div>
           <div className="grid grid-cols-6 gap-2 pt-2">
-            {avatarOptions.map((avatarSrc) => (
+            {avatarSeedOptions.map((seed) => (
               <Button
-                key={avatarSrc}
+                key={seed}
                 variant="ghost"
                 onClick={() =>
-                  setFormData((prev) => ({ ...prev, avatarUrl: avatarSrc }))
+                  setFormData((prev) => ({ ...prev, avatarSeed: seed }))
                 }
                 className={`rounded-full transition-all ${
-                  formData.avatarUrl === avatarSrc
+                  formData.avatarSeed === seed
                     ? "ring-2 ring-lightning-yellow-600 ring-offset-2"
                     : "hover:scale-105"
                 }`}
               >
                 <Avatar>
-                  <AvatarImage src={avatarSrc} alt="Opción de avatar" />
+                  <AvatarImage
+                    src={generateAvatarUrl(seed)}
+                    alt="Opción de avatar"
+                  />
                 </Avatar>
               </Button>
             ))}

@@ -34,13 +34,15 @@ export async function createUserInDb(
 
 export async function getUsers(): Promise<User[]> {
   const snapshot = await getDocs(usersCollection);
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as User));
+  return snapshot.docs.map(
+    (doc) => ({ id: doc.id, ...doc.data() } as unknown as User)
+  );
 }
 
 export async function getUserById(id: string): Promise<User | null> {
   const docRef = doc(db, "users", id);
   const docSnap = await getDoc(docRef);
   return docSnap.exists()
-    ? ({ id: docSnap.id, ...docSnap.data() } as User)
+    ? ({ id: docSnap.id, ...docSnap.data() } as unknown as User)
     : null;
 }

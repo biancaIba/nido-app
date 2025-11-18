@@ -270,7 +270,6 @@ export default function TeacherDashboard() {
       <EventModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        childrenData={selectedChildrenData}
         onSubmit={handleEventSubmit}
       />
     </>

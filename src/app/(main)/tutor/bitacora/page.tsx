@@ -119,7 +119,7 @@ export default function ParentDashboard() {
     <main className="container mx-auto max-w-3xl p-4 md:p-8">
       {/* Selector de Niño (si hay más de uno) */}
       {allChildren.length > 1 && (
-        <div className="mb-8 bg-white">
+        <div className="mb-6 bg-white">
           <Select
             value={selectedChildId ?? ""}
             onValueChange={setSelectedChildId}
@@ -139,30 +139,33 @@ export default function ParentDashboard() {
       )}
 
       {selectedChild && (
-        <header className="mb-8 flex items-center gap-4">
-          <Avatar className="h-16 w-16 border-2 border-white shadow-sm">
-            <AvatarImage
-              src={selectedChild.avatarUrl}
-              alt={selectedChild.firstName}
-            />
-            <AvatarFallback className="text-2xl">
-              {selectedChild.firstName.charAt(0)}
-              {selectedChild.lastName.charAt(0)}
+        <header className="mb-6 ml-2 flex items-center gap-4">
+          <Avatar
+            key={selectedChild.id}
+            className="bg-lightning-yellow-600 text-white"
+          >
+            <AvatarImage src={selectedChild.avatarUrl} />
+            <AvatarFallback>
+              {selectedChild.firstName
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-3xl font-bold text-shark-gray-900">
+            <h1 className="text-xl font-bold text-shark-gray-900">
               {selectedChild.firstName} {selectedChild.lastName}
             </h1>
-            <p className="text-base capitalize text-shark-gray-500">
-              {classroom?.name || "Historial de eventos"}
+            <p className="capitalize text-shark-gray-500">
+              {classroom?.name || ""}
             </p>
           </div>
         </header>
       )}
 
       {/* Date Navigator */}
-      <div className="mb-8 rounded-lg border bg-white p-4">
+      <div className="mb-6 rounded-lg border bg-white p-4">
         <div className="flex items-center justify-between gap-3">
           <Button
             variant="outline"

@@ -179,7 +179,14 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
           break;
         case "Incidente":
           payload = {
-            category: selectedCategory,
+            category: "Incidente",
+            eventTime: eventTimestamp,
+            details: { description: formData.comments || "" },
+          };
+          break;
+        case "Otro":
+          payload = {
+            category: "Otro",
             eventTime: eventTimestamp,
             details: { description: formData.comments || "" },
           };
@@ -298,17 +305,24 @@ export function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
         </SheetHeader>
 
         {/* --- Main Content: Switches between Step 1 and Step 2 --- */}
-        <div className="py-6">
+        <div className="py-2">
           {!selectedCategory ? (
             // --- STEP 1: Category Selection ---
             <div className="grid grid-cols-2 gap-4">
-              {eventCategories.map((category) => {
+              {eventCategories.map((category, index) => {
                 const Icon = category.icon;
+                const isLastItem = index === eventCategories.length - 1;
+                const isOddCount = eventCategories.length % 2 !== 0;
+                const isWideButton = isLastItem && isOddCount;
+
                 return (
                   <button
                     key={category.id}
                     onClick={() => handleCategorySelect(category.id)}
-                    className="flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all aspect-square hover:border-gray-300"
+                    className={cn(
+                      "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all",
+                      isWideButton ? "col-span-2" : "aspect-square"
+                    )}
                     style={{
                       color: category.color,
                       backgroundColor: `${category.color}1A`,

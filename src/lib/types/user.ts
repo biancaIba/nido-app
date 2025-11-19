@@ -12,7 +12,17 @@ export interface TeacherProfile {
   dateOfBirth?: string; // Consider storing as ISO string or Timestamp for easier manipulation
   shift?: string;
   employeeId?: string;
-  classroomIds?: string[]; // IDs of the classrooms the teacher is assigned to
+  classroomIds: string[]; // IDs of the classrooms the teacher is assigned to
+}
+
+/**
+ * Form data for creating or editing a teacher.
+ */
+export interface TeacherFormData extends TeacherProfile {
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatarSeed: string;
 }
 
 // We Omit 'id' from BaseModel because 'uid' IS the document ID.
@@ -22,7 +32,7 @@ export interface User extends Omit<BaseModel, "id"> {
   email: string;
   firstName: string;
   lastName: string;
-  avatarUrl?: string;
+  avatarSeed?: string;
   role: UserRole[];
   childrenIds?: string[]; // Array of Child IDs for parents
 

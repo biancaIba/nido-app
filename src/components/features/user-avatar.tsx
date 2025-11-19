@@ -26,16 +26,14 @@ export function UserAvatar({ user, size }: UserAvatarProps) {
     <Avatar
       className={cn(
         variants({ size }),
-        "border-4 bg-lightning-yellow-600/60 border-white shadow-md"
+        "border-4 bg-lightning-yellow-600/85 border-white shadow-md"
       )}
     >
       <AvatarImage
         src={user.avatarSeed ? generateAvatarUrl(user.avatarSeed) : undefined}
         alt={user.firstName}
       />
-      <AvatarFallback
-        className={cn("bg-lightning-yellow-600/70 text-white text-lg")}
-      >
+      <AvatarFallback className={cn("text-white text-lg")}>
         {user.firstName
           .split(" ")
           .map((n) => n[0])

@@ -1,8 +1,8 @@
 import { Check } from "lucide-react";
 
-import { Child } from "@/lib/types";
+import { Child, User } from "@/lib/types";
 import { Card } from "@/components/ui";
-import { ChildAvatar } from "@/components/features";
+import { UserAvatar } from "@/components/features";
 
 interface ChildCardProps {
   child: Child;
@@ -31,7 +31,7 @@ export function ChildCard({
       )}
 
       <div className="flex flex-col items-center p-4 space-y-3">
-        <ChildAvatar child={child} size="lg" />
+        <UserAvatar user={child as unknown as User} size="sm" />
 
         <div className="text-center w-full">
           <p className="text-shark-gray-900 truncate px-1">{child.firstName}</p>

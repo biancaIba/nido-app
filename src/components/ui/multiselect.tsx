@@ -56,6 +56,7 @@ const multiSelectVariants = cva("m-1 transition-all duration-300 ease-in-out", {
       inverted: "inverted",
       transparent:
         "bg-transparent border-transparent text-current hover:bg-transparent rounded-[6px]",
+      nido: "bg-lightning-yellow-600/90 text-white border-transparent rounded-[6px]",
     },
     badgeAnimation: {
       bounce: "hover:scale-105",

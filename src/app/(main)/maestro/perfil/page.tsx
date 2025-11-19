@@ -17,7 +17,8 @@ import {
 import { Classroom } from "@/lib/types";
 import { useAuth } from "@/lib/hooks";
 import { getClassroomById } from "@/lib/services";
-import { Avatar, AvatarFallback, AvatarImage, Badge } from "@/components/ui";
+import { Badge } from "@/components/ui";
+import { UserAvatar } from "@/components/features";
 
 export default function MaestroPerfil() {
   const { user, loading } = useAuth();
@@ -62,7 +63,6 @@ export default function MaestroPerfil() {
   }
 
   const fullName = `${user.firstName} ${user.lastName}`;
-  const initials = `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`;
   const memberSince = user.createdAt
     ? format(user.createdAt.toDate(), "yyyy")
     : "";
@@ -83,12 +83,7 @@ export default function MaestroPerfil() {
               <div className="flex flex-col md:flex-row items-center md:items-end gap-4 -mt-12 md:-mt-16">
                 {/* Avatar */}
                 <div className="relative">
-                  <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-white shadow-lg">
-                    <AvatarImage src={user.avatarUrl} alt={fullName} />
-                    <AvatarFallback className="text-2xl bg-white">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar user={user} size="lg" />
                 </div>
 
                 {/* Name and Role */}

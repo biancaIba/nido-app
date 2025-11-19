@@ -4,15 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 // import { format } from "date-fns";
 
 import { User } from "@/lib/types";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  Badge,
-  DataGrid,
-} from "@/components/ui";
+import { Badge, DataGrid } from "@/components/ui";
 import { Loader2 } from "lucide-react";
 import { getUsers } from "@/lib/services";
+import { UserAvatar } from "@/components/features";
 
 // TODO: Mapear roles para mostrar nombres más amigables
 const roleMap: Record<string, string> = {
@@ -55,13 +50,7 @@ export default function Usuarios() {
         minWidth: 250,
         cellRenderer: (params: { data: User }) => (
           <div className="flex items-center gap-3 py-3">
-            <Avatar>
-              <AvatarImage src={params.data.avatarUrl} />
-              <AvatarFallback>
-                {params.data.firstName?.[0]}
-                {params.data.lastName?.[0]}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar user={params.data} size="sm" />
             <div className="flex flex-col">
               <span className="font-medium text-shark-gray-900">
                 {params.data.firstName} {params.data.lastName}

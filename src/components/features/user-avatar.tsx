@@ -1,14 +1,14 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui";
-import { Child } from "@/lib/types";
+import { User } from "@/lib/types";
 import { cn, generateAvatarUrl } from "@/lib/utils";
 import { cva } from "class-variance-authority";
 
-interface ChildAvatarProps {
-  child: Child;
+interface UserAvatarProps {
+  user: User;
   size?: "sm" | "lg";
 }
 
-export function ChildAvatar({ child, size }: ChildAvatarProps) {
+export function UserAvatar({ user, size }: UserAvatarProps) {
   const variants = cva("", {
     variants: {
       size: {
@@ -30,13 +30,13 @@ export function ChildAvatar({ child, size }: ChildAvatarProps) {
       )}
     >
       <AvatarImage
-        src={generateAvatarUrl(child.avatarSeed)}
-        alt={child.firstName}
+        src={user.avatarSeed ? generateAvatarUrl(user.avatarSeed) : undefined}
+        alt={user.firstName}
       />
       <AvatarFallback
         className={cn("bg-lightning-yellow-600/70 text-white text-lg")}
       >
-        {child.firstName
+        {user.firstName
           .split(" ")
           .map((n) => n[0])
           .join("")

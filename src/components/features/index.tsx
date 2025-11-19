@@ -1,5 +1,6 @@
 export * from "./add-edit-child";
-export * from "./child-avatar";
+export * from "./add-edit-teacher";
+export * from "./user-avatar";
 export * from "./event-modal";
 export * from "./child-card";
 export * from "./event-timeline-item";

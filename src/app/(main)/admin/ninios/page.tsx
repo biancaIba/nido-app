@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Edit, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-import { Child, Classroom } from "@/lib/types";
+import { Child, Classroom, User } from "@/lib/types";
 import { getAllChildren, getClassrooms } from "@/lib/services";
-import { AddEditChild, ChildAvatar } from "@/components/features";
+import { AddEditChild, UserAvatar } from "@/components/features";
 import { Button } from "@/components/ui";
 
 export default function NiniosPage() {
@@ -93,7 +93,7 @@ export default function NiniosPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <ChildAvatar child={child} size="sm" />
+                      <UserAvatar user={child as unknown as User} size="sm" />
                       <div>
                         <h3 className="text-shark-gray-900">
                           {child.firstName} {child.lastName}

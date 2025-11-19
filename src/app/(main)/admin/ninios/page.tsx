@@ -8,6 +8,7 @@ import { Child, Classroom } from "@/lib/types";
 import { getAllChildren, getClassrooms } from "@/lib/services";
 import { AddEditChild } from "@/components/features";
 import { Avatar, AvatarFallback, AvatarImage, Button } from "@/components/ui";
+import { generateAvatarUrl } from "@/lib/utils";
 
 export default function NiniosPage() {
   const [children, setChildren] = useState<Child[]>([]);
@@ -97,7 +98,9 @@ export default function NiniosPage() {
                         key={child.id}
                         className="bg-lightning-yellow-600 text-white"
                       >
-                        <AvatarImage src={child.avatarUrl} />
+                        <AvatarImage
+                          src={generateAvatarUrl(child.avatarSeed)}
+                        />
                         <AvatarFallback>
                           {child.firstName
                             .split(" ")

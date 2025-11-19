@@ -13,7 +13,7 @@ import {
 
 import { db } from "@/config/firebase";
 import { Child, ChildFormData } from "@/lib/types";
-import { sendParentInvitation } from "@/lib/services";
+import { sendEmailInvitation } from "@/lib/services";
 
 const childrenCollection = collection(db, "children");
 
@@ -56,7 +56,7 @@ export const createChild = async (
       const emailPromises = childData.authorizedEmails
         .filter((email) => email.trim() !== "")
         .map(async (email) => {
-          const response = await sendParentInvitation({
+          const response = await sendEmailInvitation({
             toEmail: email,
             childName: childData.firstName,
           });

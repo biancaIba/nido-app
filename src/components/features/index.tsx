@@ -5,4 +5,5 @@ export * from "./event-modal";
 export * from "./child-card";
 export * from "./event-timeline-item";
 export * from "./parent-invitation-email";
+export * from "./teacher-invitation-name";
 export * from "./nido-logo";

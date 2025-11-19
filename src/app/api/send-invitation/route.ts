@@ -1,4 +1,7 @@
-import { ParentInvitationEmail } from "@/components/features";
+import {
+  ParentInvitationEmail,
+  TeacherInvitationEmail,
+} from "@/components/features";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
@@ -8,12 +11,25 @@ export async function POST(request: Request) {
   try {
     const { toEmail, childName } = await request.json();
 
+    if (!toEmail) {
+      return NextResponse.json(
+        { error: "Faltan parámetros obligatorios." },
+        { status: 400 }
+      );
+    }
+
+    const subject =
+      `¡Bienvenido a Nido` + (childName ? `, ${childName} te espera!` : "!");
+
+    const react = childName
+      ? ParentInvitationEmail({ childName })
+      : TeacherInvitationEmail();
+
     const { data, error } = await resend.emails.send({
-      // Asegúrate de que esta línea esté usando el dominio de onboarding.
       from: "Nido <onboarding@resend.dev>",
       to: [toEmail],
-      subject: `¡Bienvenido a Nido, ${childName} te espera!`,
-      react: ParentInvitationEmail({ childName }) as React.JSX.Element,
+      subject: subject,
+      react: react as React.JSX.Element,
     });
 
     if (error) {

@@ -1,12 +1,12 @@
 interface InviteEmailProps {
   toEmail: string;
-  childName: string;
+  childName?: string;
 }
 
 /**
  * Llama a nuestra API Route para enviar una invitación al padre/tutor.
  */
-export const sendParentInvitation = async ({
+export const sendEmailInvitation = async ({
   toEmail,
   childName,
 }: InviteEmailProps) => {

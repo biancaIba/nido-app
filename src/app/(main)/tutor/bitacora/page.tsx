@@ -18,11 +18,8 @@ import {
   getEventsByChildId,
   getClassroomById,
 } from "@/lib/services";
-import { EventTimelineItem } from "@/components/features";
+import { ChildAvatar, EventTimelineItem } from "@/components/features";
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
   Button,
   Select,
   SelectContent,
@@ -30,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui";
-import { generateAvatarUrl } from "@/lib/utils";
 
 export default function ParentDashboard() {
   const { user } = useAuth();
@@ -140,19 +136,7 @@ export default function ParentDashboard() {
 
       {selectedChild && (
         <header className="mb-6 ml-2 flex items-center gap-4">
-          <Avatar
-            key={selectedChild.id}
-            className="bg-lightning-yellow-600 text-white"
-          >
-            <AvatarImage src={generateAvatarUrl(selectedChild.avatarSeed)} />
-            <AvatarFallback>
-              {selectedChild.firstName
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <ChildAvatar child={selectedChild} size="sm" />
           <div>
             <h1 className="text-xl font-bold text-shark-gray-900">
               {selectedChild.firstName} {selectedChild.lastName}

@@ -6,9 +6,8 @@ import { toast } from "sonner";
 
 import { Child, Classroom } from "@/lib/types";
 import { getAllChildren, getClassrooms } from "@/lib/services";
-import { AddEditChild } from "@/components/features";
-import { Avatar, AvatarFallback, AvatarImage, Button } from "@/components/ui";
-import { generateAvatarUrl } from "@/lib/utils";
+import { AddEditChild, ChildAvatar } from "@/components/features";
+import { Button } from "@/components/ui";
 
 export default function NiniosPage() {
   const [children, setChildren] = useState<Child[]>([]);
@@ -94,21 +93,7 @@ export default function NiniosPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Avatar
-                        key={child.id}
-                        className="bg-lightning-yellow-600 text-white"
-                      >
-                        <AvatarImage
-                          src={generateAvatarUrl(child.avatarSeed)}
-                        />
-                        <AvatarFallback>
-                          {child.firstName
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
+                      <ChildAvatar child={child} size="sm" />
                       <div>
                         <h3 className="text-shark-gray-900">
                           {child.firstName} {child.lastName}

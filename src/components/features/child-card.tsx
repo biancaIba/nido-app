@@ -1,8 +1,8 @@
 import { Check } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage, Card } from "@/components/ui";
 import { Child } from "@/lib/types";
-import { generateAvatarUrl } from "@/lib/utils";
+import { Card } from "@/components/ui";
+import { ChildAvatar } from "@/components/features";
 
 interface ChildCardProps {
   child: Child;
@@ -31,19 +31,7 @@ export function ChildCard({
       )}
 
       <div className="flex flex-col items-center p-4 space-y-3">
-        <Avatar className="h-20 w-20 border-4 border-white shadow-md">
-          <AvatarImage
-            src={generateAvatarUrl(child.avatarSeed)}
-            alt={child.firstName}
-          />
-          <AvatarFallback className="bg-lightning-yellow-600 text-white">
-            {child.firstName
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <ChildAvatar child={child} size="lg" />
 
         <div className="text-center w-full">
           <p className="text-shark-gray-900 truncate px-1">{child.firstName}</p>

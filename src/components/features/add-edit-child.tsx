@@ -121,7 +121,7 @@ export function AddEditChild({
         {/* Avatar Selection */}
         <div>
           <div className="flex justify-center">
-            <Avatar className="h-24 w-24 border-4 border-lightning-yellow-600">
+            <Avatar className="h-24 w-24 border-4 border-white shadow-md">
               <AvatarImage
                 src={generateAvatarUrl(formData.avatarSeed)}
                 alt="Avatar seleccionado"
@@ -143,11 +143,11 @@ export function AddEditChild({
                 }
                 className={`rounded-full transition-all ${
                   formData.avatarSeed === seed
-                    ? "ring-2 ring-lightning-yellow-600 ring-offset-2"
+                    ? "ring-2 ring-lightning-yellow-600/60 ring-offset-2"
                     : "hover:scale-105"
                 }`}
               >
-                <Avatar>
+                <Avatar className="h-10 w-10 border-2 border-white shadow-md">
                   <AvatarImage
                     src={generateAvatarUrl(seed)}
                     alt="Opción de avatar"

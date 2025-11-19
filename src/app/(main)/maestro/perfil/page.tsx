@@ -130,9 +130,7 @@ export default function MaestroPerfil() {
                   </div>
                   <div className="flex-1">
                     <p className="text-xs text-gray-500 mb-1">Teléfono</p>
-                    <p className="text-gray-900">
-                      {user.teacherProfile?.phone}
-                    </p>
+                    <p className="text-gray-900">{user?.phone}</p>
                   </div>
                 </div>
 
@@ -145,9 +143,7 @@ export default function MaestroPerfil() {
                     <p className="text-xs text-gray-500 mb-1">
                       Fecha de Nacimiento
                     </p>
-                    <p className="text-gray-900">
-                      {user.teacherProfile?.dateOfBirth}
-                    </p>
+                    <p className="text-gray-900">{user?.dateOfBirth}</p>
                   </div>
                 </div>
               </div>

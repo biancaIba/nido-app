@@ -37,6 +37,7 @@ export function AddEditTeacher({
     phone: "",
     dateOfBirth: "",
     shift: "",
+    employeeId: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -95,7 +96,11 @@ export function AddEditTeacher({
           <div className="flex justify-center">
             <Avatar className="h-24 w-24 border-4 border-white shadow-md">
               <AvatarImage
-                src={generateAvatarUrl(formData.avatarSeed)}
+                src={
+                  formData.avatarSeed
+                    ? generateAvatarUrl(formData.avatarSeed)
+                    : undefined
+                }
                 alt="Avatar seleccionado"
               />
               <AvatarFallback className="text-3xl">
@@ -220,6 +225,17 @@ export function AddEditTeacher({
             value={formData.shift}
             onChange={handleInputChange}
             placeholder="e.g., Mañana"
+          />
+        </div>
+
+        <div>
+          <h3 className="text-shark-gray-900 mb-2">Turno</h3>
+          <Input
+            id="employeeId"
+            name="employeeId"
+            value={formData.employeeId}
+            onChange={handleInputChange}
+            placeholder="e.g., EMP12345"
           />
         </div>
       </div>

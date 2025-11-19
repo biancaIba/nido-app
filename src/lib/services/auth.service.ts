@@ -105,11 +105,18 @@ export const createTeacher = async (
       email: teacherData.email.toLowerCase(),
       firstName: teacherData.firstName,
       lastName: teacherData.lastName,
-      avatarSeed: teacherData.avatarSeed,
       role: ["teacher"],
+
+      avatarSeed: teacherData.avatarSeed,
+      phone: teacherData.phone,
+      dateOfBirth: teacherData.dateOfBirth,
+
       teacherProfile: {
+        shift: teacherData.shift,
+        employeeId: teacherData.employeeId,
         classroomIds: teacherData.classroomIds,
       },
+
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
       deletedAt: null,

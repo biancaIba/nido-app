@@ -8,8 +8,6 @@ export type UserRole = "admin" | "teacher" | "parent";
  * This object will be present on the User document if the user is a teacher.
  */
 export interface TeacherProfile {
-  phone?: string;
-  dateOfBirth?: string; // Consider storing as ISO string or Timestamp for easier manipulation
   shift?: string;
   employeeId?: string;
   classroomIds: string[]; // IDs of the classrooms the teacher is assigned to
@@ -19,21 +17,31 @@ export interface TeacherProfile {
  * Form data for creating or editing a teacher.
  */
 export interface TeacherFormData extends TeacherProfile {
+  email: string;
   firstName: string;
   lastName: string;
-  email: string;
-  avatarSeed: string;
+
+  // Optional profile fields
+  avatarSeed?: string;
+  phone?: string;
+  dateOfBirth?: string;
 }
 
 // We Omit 'id' from BaseModel because 'uid' IS the document ID.
 // We still keep the other useful audit fields.
 export interface User extends Omit<BaseModel, "id"> {
   uid: string; // This is the Firebase Auth UID and the Document ID
+
   email: string;
   firstName: string;
   lastName: string;
-  avatarSeed?: string;
   role: UserRole[];
+
+  // Optional profile fields
+  avatarSeed?: string;
+  phone?: string;
+  dateOfBirth?: string;
+
   childrenIds?: string[]; // Array of Child IDs for parents
 
   // Role-specific profiles

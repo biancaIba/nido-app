@@ -83,9 +83,7 @@ export function AddEditChild({
   const handleSubmit = async () => {
     // 1. Asegurarse de que el usuario (el admin) esté cargado antes de continuar.
     if (!user) {
-      toast.error(
-        "No se pudo verificar al administrador. Por favor, recarga la página."
-      );
+      toast.error("No se pudo verificar al administrador.");
       return;
     }
 

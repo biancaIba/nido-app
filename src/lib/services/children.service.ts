@@ -13,6 +13,7 @@ import {
 
 import { db } from "@/config/firebase";
 import { Child, ChildFormData } from "@/lib/types";
+import { sendParentInvitation } from "@/lib/services";
 
 const childrenCollection = collection(db, "children");
 
@@ -41,19 +42,53 @@ export const getAllChildren = async (): Promise<Child[]> => {
  * @param adminId The UID of the admin creating the child.
  * @returns The newly created Child object.
  */
+
 export const createChild = async (
   childData: ChildFormData,
   adminId: string
 ): Promise<Child> => {
   try {
-    // Convert date string to Firestore Timestamp
+    if (childData.authorizedEmails && childData.authorizedEmails.length > 0) {
+      console.log(
+        `Validando y enviando invitaciones para ${childData.firstName}...`
+      );
+
+      const emailPromises = childData.authorizedEmails
+        .filter((email) => email.trim() !== "")
+        .map(async (email) => {
+          const response = await sendParentInvitation({
+            toEmail: email,
+            childName: childData.firstName,
+          });
+          if (!response || response.success === false) {
+            throw new Error(`Fallo al enviar invitación al correo: ${email}`);
+          }
+          return response;
+        });
+
+      // Promise.all se detendrá si alguna promesa es rechazada (falla).
+      await Promise.all(emailPromises);
+      console.log("Todas las invitaciones se enviaron exitosamente.");
+    }
+  } catch (error) {
+    // Si algún correo falla, detenemos todo el proceso.
+    console.error(
+      "[children.service] Fallo crítico al enviar correos, no se creará el niño:",
+      error
+    );
+    // Lanzamos un error específico para que el frontend pueda mostrar un mensaje claro.
+    throw new Error(
+      "No se pudo enviar la invitación por correo. Por favor, verifica las direcciones e inténtalo de nuevo."
+    );
+  }
+
+  try {
     const dateOfBirthTimestamp = Timestamp.fromDate(
       new Date(childData.dateOfBirth)
     );
-
     const docData = {
       ...childData,
-      dateOfBirth: dateOfBirthTimestamp, // Use the converted Timestamp
+      dateOfBirth: dateOfBirthTimestamp,
       parentIds: [],
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -71,9 +106,14 @@ export const createChild = async (
       createdAt: new Date(),
       updatedAt: new Date(),
     } as unknown as Child;
-  } catch (error) {
-    console.error("[children.service] Error creating child: ", error);
-    throw new Error("No se pudo crear el alumno.");
+  } catch (dbError) {
+    console.error(
+      "[children.service] Error al crear el niño en la BD después de enviar correos:",
+      dbError
+    );
+    throw new Error(
+      "Se enviaron los correos, pero no se pudo guardar el alumno en la base de datos."
+    );
   }
 };
 

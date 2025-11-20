@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { useAuth } from "@/lib/hooks";
 import { Button, Input } from "@/components/ui";
+import { LogoNido } from "@/components/features";
 
 export default function LoginPage() {
   const { signInWithEmail, signInWithGoogle, loading, authError } = useAuth();
@@ -45,8 +46,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-shark-gray-900">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center justify-center">
+        <LogoNido className="h-20 w-20" />
+        <h2 className="text-center text-3xl font-bold tracking-tight text-shark-gray-900">
           Iniciar sesión
         </h2>
         <p className="mt-2 text-center text-sm text-shark-gray-900/60">
@@ -100,11 +102,8 @@ export default function LoginPage() {
                 <div className="flex">
                   <div className="ml-3">
                     <h3 className="text-sm font-medium text-red-800">
-                      Error al iniciar sesión
+                      No es posible iniciar sesión.
                     </h3>
-                    <div className="mt-2 text-sm text-red-700">
-                      <p>{authError}</p>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -169,7 +168,7 @@ export default function LoginPage() {
                   />
                   <path fill="none" d="M0 0h48v48H0z" />
                 </svg>
-                Iniciar Sesión con Google
+                Google
               </Button>
             </div>
           </div>

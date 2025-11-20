@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -8,19 +8,13 @@ import { useAuth } from "@/lib/hooks";
 import { Button } from "@/components/ui";
 
 export default function Register() {
-  const { signUpWithEmail, user, loading, authError } = useAuth();
+  const { signUpWithEmail, loading, authError } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && user) {
-      router.replace("/maestro/eventos");
-    }
-  }, [user, loading, router]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();

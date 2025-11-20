@@ -1,13 +1,20 @@
 "use client";
 
-import { Mail, Phone, Calendar, UserCircle, Loader2 } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  Calendar,
+  UserCircle,
+  Loader2,
+  LogOut,
+} from "lucide-react";
 
 import { useAuth } from "@/lib/hooks";
-import { Badge } from "@/components/ui";
+import { Badge, Button } from "@/components/ui";
 import { UserAvatar } from "@/components/features";
 
 export default function TutorPerfil() {
-  const { user, loading } = useAuth();
+  const { user, loading, logOut } = useAuth();
 
   if (loading) {
     return (
@@ -53,6 +60,18 @@ export default function TutorPerfil() {
                     <Badge variant="purple">Tutor/a</Badge>
                     <Badge variant="green">Activo</Badge>
                   </div>
+                </div>
+
+                {/* Logout Button */}
+                <div className="md:mb-2">
+                  <Button
+                    onClick={() => logOut()}
+                    variant="destructive"
+                    size="xs"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Cerrar Sesión
+                  </Button>
                 </div>
               </div>
             </div>

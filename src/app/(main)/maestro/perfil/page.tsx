@@ -12,16 +12,17 @@ import {
   Users,
   UserCircle,
   Loader2,
+  LogOut,
 } from "lucide-react";
 
 import { Classroom } from "@/lib/types";
 import { useAuth } from "@/lib/hooks";
 import { getClassroomById } from "@/lib/services";
-import { Badge } from "@/components/ui";
+import { Badge, Button } from "@/components/ui";
 import { UserAvatar } from "@/components/features";
 
 export default function MaestroPerfil() {
-  const { user, loading } = useAuth();
+  const { user, loading, logOut } = useAuth();
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [isLoadingClassrooms, setIsLoadingClassrooms] = useState(true);
 
@@ -93,6 +94,18 @@ export default function MaestroPerfil() {
                     <Badge variant="purple">Maestro/a</Badge>
                     <Badge variant="green">Activo</Badge>
                   </div>
+                </div>
+
+                {/* Logout Button */}
+                <div className="md:mb-2">
+                  <Button
+                    onClick={() => logOut()}
+                    variant="destructive"
+                    size="xs"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Cerrar Sesión
+                  </Button>
                 </div>
               </div>
             </div>
@@ -221,6 +234,17 @@ export default function MaestroPerfil() {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Logout Button */}
+          <div className="md:mb-2">
+            <button
+              onClick={() => logOut()}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              Cerrar Sesión
+            </button>
           </div>
         </div>
       </main>

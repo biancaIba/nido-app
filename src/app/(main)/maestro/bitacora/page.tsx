@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -17,12 +18,10 @@ import {
   getChildrenByIds,
   getEventsByChildId,
   getClassroomById,
+  getClassrooms,
 } from "@/lib/services";
 import { EventTimelineItem } from "@/components/features";
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
   Button,
   Select,
   SelectContent,
@@ -31,20 +30,37 @@ import {
   SelectValue,
 } from "@/components/ui";
 
-export default function ParentDashboard() {
+export default function MaestroBitacora() {
   const { user } = useAuth();
 
-  const [allChildren, setAllChildren] = useState<Child[]>([]);
+  const [selectedClassroom, setSelectedClassroom] = useState<string>("");
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
 
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const [allChildren, setAllChildren] = useState<Child[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
-  const [classroom, setClassroom] = useState<Classroom | null>(null);
+
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(true);
 
   const [error, setError] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Efecto para obtener la lista de todos los hijos del padre
+  useEffect(() => {
+    const fetchClassrooms = async () => {
+      try {
+        const fetchedClassrooms = await getClassrooms();
+        setClassrooms(fetchedClassrooms);
+        if (fetchedClassrooms.length > 0) {
+          setSelectedClassroom(fetchedClassrooms[0].id);
+        }
+      } catch (error) {
+        setError("No se pudieron cargar las salas.");
+      }
+    };
+    fetchClassrooms();
+  }, []);
+
   useEffect(() => {
     if (!user || !user.childrenIds || user.childrenIds.length === 0) {
       return;
@@ -53,21 +69,18 @@ export default function ParentDashboard() {
     const fetchChildren = async () => {
       try {
         const childrenData = await getChildrenByIds(user.childrenIds!);
-        console.log(childrenData);
         setAllChildren(childrenData);
         if (childrenData.length > 0) {
-          setSelectedChildId(childrenData[0].id); // Seleccionar el primer hijo por defecto
+          setSelectedChildId(childrenData[0].id);
         }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        setError("No se pudo cargar la lista de alumnos.");
+        setError("No se pudo cargar la lista de niños.");
       }
     };
 
     fetchChildren();
   }, [user]);
 
-  // Efecto para obtener los datos del hijo seleccionado (sala y eventos)
   useEffect(() => {
     if (!selectedChildId) return;
 
@@ -83,7 +96,7 @@ export default function ParentDashboard() {
           getEventsByChildId(selectedChildId, selectedDate),
         ]);
 
-        setClassroom(classroomData);
+        setClassrooms([classroomData as Classroom]);
         setEvents(eventsData);
       } catch (err) {
         setError(
@@ -116,53 +129,25 @@ export default function ParentDashboard() {
   const isNextDayDisabled = isToday(startOfDate(selectedDate));
 
   return (
-    <main className="container mx-auto max-w-3xl p-4 md:p-8">
-      {/* Selector de Niño (si hay más de uno) */}
-      {allChildren.length > 1 && (
-        <div className="mb-8 bg-white">
-          <Select
-            value={selectedChildId ?? ""}
-            onValueChange={setSelectedChildId}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecciona un niño/a" />
-            </SelectTrigger>
-            <SelectContent>
-              {allChildren.map((child) => (
-                <SelectItem key={child.id} value={child.id}>
-                  {child.firstName} {child.lastName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {selectedChild && (
-        <header className="mb-8 flex items-center gap-4">
-          <Avatar className="h-16 w-16 border-2 border-white shadow-sm">
-            <AvatarImage
-              src={selectedChild.avatarUrl}
-              alt={selectedChild.firstName}
-            />
-            <AvatarFallback className="text-2xl">
-              {selectedChild.firstName.charAt(0)}
-              {selectedChild.lastName.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h1 className="text-3xl font-bold text-shark-gray-900">
-              {selectedChild.firstName} {selectedChild.lastName}
-            </h1>
-            <p className="text-base capitalize text-shark-gray-500">
-              {classroom?.name || "Historial de eventos"}
-            </p>
-          </div>
-        </header>
-      )}
+    <>
+      {/* Classroom Selector */}
+      <div className="sticky top-0 z-40 bg-white border-b px-4 py-3 shadow-sm mb-4">
+        <Select value={selectedClassroom} onValueChange={setSelectedClassroom}>
+          <SelectTrigger className="w-full h-12">
+            <SelectValue placeholder="Seleccionar sala" />
+          </SelectTrigger>
+          <SelectContent>
+            {classrooms.map((room) => (
+              <SelectItem key={room.id} value={room.id}>
+                {room.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Date Navigator */}
-      <div className="mb-8 rounded-lg border bg-white p-4">
+      <div className="rounded-lg border-b bg-white p-4 mb-2">
         <div className="flex items-center justify-between gap-3">
           <Button
             variant="outline"
@@ -192,6 +177,27 @@ export default function ParentDashboard() {
         </div>
       </div>
 
+      {/* Selector de Niño (si hay más de uno) */}
+      {allChildren.length > 1 && (
+        <div className="mb-2 px-4 bg-white">
+          <Select
+            value={selectedChildId ?? ""}
+            onValueChange={setSelectedChildId}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona un niño/a" />
+            </SelectTrigger>
+            <SelectContent>
+              {allChildren.map((child) => (
+                <SelectItem key={child.id} value={child.id}>
+                  {child.firstName} {child.lastName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       {isLoadingEvents ? (
         <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
           <Loader2 className="h-8 w-8 animate-spin text-shark-gray-400" />
@@ -202,13 +208,13 @@ export default function ParentDashboard() {
           <p className="text-red-600">{error}</p>
         </div>
       ) : events.length > 0 ? (
-        <div className="space-y-2">
+        <div className="space-y-2 px-4">
           {events.map((event) => (
             <EventTimelineItem key={event.id} event={event} />
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-gray-200 p-12 text-center">
+        <div className="flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-gray-200 bg-white p-12 text-center">
           <FileText className="h-12 w-12 text-shark-gray-300" />
           <h3 className="text-lg font-semibold text-shark-gray-700">
             No hay eventos este día
@@ -219,6 +225,6 @@ export default function ParentDashboard() {
           </p>
         </div>
       )}
-    </main>
+    </>
   );
 }

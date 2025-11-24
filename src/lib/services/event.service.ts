@@ -150,9 +150,9 @@ export async function getEventsByChildId(
  */
 function createEventSummaryDescription(payload: EventCreationPayload): string {
   switch (payload.category) {
-    case "food":
+    case "Comida":
       return `Comió ${(payload.details as FoodDetails).mealType}.`;
-    case "sleep":
+    case "Sueño":
       return (
         "Inició una siesta a las " +
         new Date(
@@ -160,12 +160,14 @@ function createEventSummaryDescription(payload: EventCreationPayload): string {
         ).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }) +
         "."
       );
-    case "diaper":
+    case "Baño":
       return `Cambio de pañal (${(payload.details as DiaperDetails).type}).`;
-    case "activity":
+    case "Actividad":
       return `Actividad: ${(payload.details as NoteDetails).description}`;
-    case "incident":
+    case "Incidente":
       return `Incidente: ${(payload.details as NoteDetails).description}`;
+    case "Otro":
+      return `Otro: ${(payload.details as NoteDetails).description}`;
     default:
       return "Nuevo evento registrado.";
   }

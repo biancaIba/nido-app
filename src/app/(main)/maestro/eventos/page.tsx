@@ -24,6 +24,8 @@ import {
 } from "@/components/ui";
 
 export default function TeacherDashboard() {
+  const { user } = useAuth();
+
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedChildren, setSelectedChildren] = useState<Set<string>>(
     new Set()
@@ -36,8 +38,6 @@ export default function TeacherDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const { user } = useAuth();
 
   useEffect(() => {
     const fetchClassrooms = async () => {
@@ -71,7 +71,7 @@ export default function TeacherDashboard() {
         );
         setChildren(fetchedChildren);
       } catch (error) {
-        setError("No se pudieron cargar los alumnos.");
+        setError("No se pudieron cargar los niños.");
       } finally {
         setIsLoading(false);
       }
@@ -96,16 +96,32 @@ export default function TeacherDashboard() {
     }
   };
 
-  const handleGroupEventClick = () => {
-    if (selectionMode) {
-      // Cancel selection mode
-      setSelectionMode(false);
-      setSelectedChildren(new Set());
-    } else {
-      // Start selection mode
-      setSelectionMode(true);
-    }
+  const handleSelectAll = () => {
+    setSelectionMode(true);
+    const allChildIds = new Set(children.map((child) => child.id));
+    setSelectedChildren(allChildIds);
   };
+
+  // const handleStartSelection = () => {
+  //   setSelectionMode(true);
+  //   setSelectedChildren(new Set());
+  // };
+
+  const handleCancelSelection = () => {
+    setSelectionMode(false);
+    setSelectedChildren(new Set());
+  };
+
+  // const handleGroupEventClick = () => {
+  //   if (selectionMode) {
+  //     // Cancel selection mode
+  //     setSelectionMode(false);
+  //     setSelectedChildren(new Set());
+  //   } else {
+  //     // Start selection mode
+  //     setSelectionMode(true);
+  //   }
+  // };
 
   const handleGroupEventSubmit = () => {
     if (selectedChildren.size === 0) {
@@ -170,11 +186,6 @@ export default function TeacherDashboard() {
     }
   };
 
-  // Get selected children objects
-  const selectedChildrenData = children.filter((child) =>
-    selectedChildren.has(child.id)
-  );
-
   if (isLoading && classrooms.length === 0) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -210,27 +221,30 @@ export default function TeacherDashboard() {
       </div>
 
       {/* Group Event Button */}
-      <div className="sticky top-14 z-30 px-4 pt-4 pb-2 bg-shark-gray-50">
-        <Button
-          onClick={handleGroupEventClick}
-          className={`w-full h-10 ${
-            selectionMode
-              ? "bg-gray-600 hover:bg-gray-700"
-              : "bg-blue-violet-500 hover:bg-blue-violet-500/90"
-          } text-white gap-2`}
-        >
-          {selectionMode ? (
-            <>
-              <X className="h-5 w-5" />
-              Cancelar Selección
-            </>
-          ) : (
-            <>
+      <div className="sticky top-14 z-30 bg-shark-gray-50 px-4 pb-2 pt-4">
+        {selectionMode ? (
+          <Button
+            onClick={handleCancelSelection}
+            className="h-10 w-full gap-2 bg-gray-600 text-white hover:bg-gray-700"
+          >
+            <X className="h-5 w-5" />
+            Cancelar
+          </Button>
+        ) : (
+          <div className="flex w-full gap-2">
+            <Button onClick={handleSelectAll} className="h-10 flex-1 gap-2">
               <Users className="h-5 w-5" />
-              Evento Grupal
-            </>
-          )}
-        </Button>
+              Seleccionar Todos
+            </Button>
+            {/* <Button
+              onClick={handleStartSelection}
+              className="h-10 flex-1 gap-2"
+            >
+              <User className="h-5 w-5" />
+              Seleccionar Algunos
+            </Button> */}
+          </div>
+        )}
       </div>
 
       {/* Child Grid */}
@@ -259,9 +273,9 @@ export default function TeacherDashboard() {
           <Button
             onClick={handleGroupEventSubmit}
             disabled={selectedChildren.size === 0}
-            className="w-full h-12 bg-blue-violet-500 hover:bg-blue-violet-500/90 text-white"
+            className="w-full h-12 bg-lightning-yellow-600 hover:bg-lightning-yellow-600/90 text-white"
           >
-            Cargar Evento para {selectedChildren.size} Alumnos
+            Cargar Evento Grupal
           </Button>
         </div>
       )}
@@ -270,7 +284,6 @@ export default function TeacherDashboard() {
       <EventModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        childrenData={selectedChildrenData}
         onSubmit={handleEventSubmit}
       />
     </>

@@ -1,43 +1,58 @@
 import * as React from "react";
-import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
+  "inline-flex items-center border px-2 py-0.5 text-xs font-medium transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 leading-5 tracking-wide",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
+          "rounded-full bg-blue-ribbon-100 text-blue-ribbon-700 border-blue-ribbon-200 font-normal",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+          "rounded-md border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 font-normal",
         destructive:
-          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "rounded-md border-transparent bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/80 font-normal",
+        warning:
+          "rounded-full bg-lightning-yellow-100 text-lightning-yellow-700 border-lightning-yellow-200 font-normal",
+        success:
+          "rounded-full bg-sea-green-800 text-white border-sea-green-800 font-normal",
+        danger:
+          "rounded-full bg-lightning-yellow-700 text-white border-lightning-yellow-700 font-normal",
         outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+          "rounded-md text-shark-gray-700 border-shark-gray-100 text-foreground font-normal",
+        purple:
+          "rounded-full bg-blue-violet-100 text-blue-violet-700 border-blue-violet-200 font-normal",
+        neutral:
+          "rounded-full bg-shark-gray-100 text-shark-gray-700 border-shark-gray-200 font-normal",
+        white:
+          "rounded-full bg-white text-shark-gray-700 border-shark-gray-200 font-normal",
+        green:
+          "rounded-full bg-sea-green-100 text-sea-green-700 border-sea-green-200 font-normal",
+        pink: "rounded-full bg-pink-100 text-pink-700 border-pink-200 font-normal",
+      },
+      size: {
+        default: "text-xs px-2 py-0.5",
+        sm: "text-[10px] px-1.5 py-0",
+        lg: "text-sm px-2.5 py-[1px]",
       },
     },
     defaultVariants: {
       variant: "default",
+      size: "default",
     },
   }
 );
 
-function Badge({
-  className,
-  variant,
-  asChild = false,
-  ...props
-}: React.ComponentProps<"span"> &
-  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : "span";
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {}
 
+function Badge({ className, variant, size, ...props }: BadgeProps) {
   return (
-    <Comp
-      data-slot="badge"
-      className={cn(badgeVariants({ variant }), className)}
+    <div
+      className={cn(badgeVariants({ variant, size }), className)}
       {...props}
     />
   );

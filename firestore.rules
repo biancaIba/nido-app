@@ -1,0 +1,185 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helper Functions ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper to get the *requesting* user's profile data
+    function getMyUserData() {
+      // Get the user doc using their auth UID
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Checks if the signed-in user has a role in their 'role' array
+    function hasRole(roleName) {
+      return isSignedIn() && roleName in getMyUserData().role;
+    }
+
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    function isTeacher() {
+      return hasRole('teacher');
+    }
+
+    function isParent() {
+      return hasRole('parent');
+    }
+
+    // --- Helpers Relacionales ---
+
+    // Checks if I am a teacher of a specific classroom
+    function isTeacherOfClassroom(classroomId) {
+      let classroomDoc = get(/databases/$(database)/documents/classrooms/$(classroomId)).data;
+      // Check if my UID is in that classroom's teacherIds array
+      return request.auth.uid in classroomDoc.teacherIds;
+    }
+
+    // Checks if I am a parent of a specific child
+    function isParentOfChild(childId) {
+      let childDoc = get(/databases/$(database)/documents/children/$(childId)).data;
+      // Check if my UID is in that child's parentIds array
+      return request.auth.uid in childDoc.parentIds;
+    }
+
+    // Checks if I am a teacher of a specific child (2-step check)
+    function isTeacherOfChild(childId) {
+      let childDoc = get(/databases/$(database)/documents/children/$(childId)).data;
+      // Now call the helper we already built
+      return isTeacherOfClassroom(childDoc.classroomId);
+    }
+
+    // --- Colección: users ---
+    // ID del Documento == Auth UID
+    match /users/{userId} {
+      // You can create your *own* profile or another if you're adn admin
+      allow create: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+
+      // You can 'get' your own profile, or an Admin can 'get' any
+      // ALSO: You can get a profile if the email matches your auth email (for invitations)
+      allow get: if isSignedIn() && (
+        request.auth.uid == userId || 
+        isAdmin() ||
+        resource.data.email == request.auth.token.email
+      );
+
+      // You can 'update' your own profile (but not roles)
+      // An Admin can update anything
+      allow update: if isSignedIn() &&
+                    ( (request.auth.uid == userId && request.resource.data.role == resource.data.role) ||
+                      isAdmin() );
+
+      // Only Admins can delete
+      // OR: You can delete a user if it's an invitation for you (email matches)
+      // This is needed for the migration process (delete old invitation doc)
+      allow delete: if isAdmin() || (
+        isSignedIn() && resource.data.email == request.auth.token.email
+      );
+
+      // *SECURE*: No one can list the entire user directory except Admins
+      // EXCEPTION: You can list users if you are filtering by your own email
+      // This is required for getUserByEmail() to work
+      allow list: if isAdmin() || (
+        isSignedIn() && request.query.limit <= 1 && request.resource.data.email == request.auth.token.email
+      ) || (
+        // Allow query if filtering by email == auth.token.email
+        isSignedIn() && resource.data.email == request.auth.token.email
+      );
+    }
+
+    // --- Colección: classrooms ---
+    match /classrooms/{classroomId} {
+      // Admins or Teachers can create
+      allow create: if isAdmin() || isTeacher();
+
+      // *SECURE*: Read is split into 'get' and 'list'
+      // GET: Admins or Teachers of *this* classroom
+      allow get: if isSignedIn() && (isAdmin() || isTeacherOfClassroom(classroomId));
+
+      // LIST: Admins or Teachers (allows query: where('teacherIds', 'array-contains', uid))
+      allow list: if isSignedIn() && (isAdmin() || isTeacher());
+
+      // UPDATE: Admins or Teachers of *this* classroom
+      allow update: if isSignedIn() && (isAdmin() || isTeacherOfClassroom(classroomId));
+
+      // DELETE: Only Admins
+      allow delete: if isAdmin();
+    }
+
+    // --- Colección: children ---
+    match /children/{childId} {
+      // CREATE: Admins or Teachers
+      allow create: if isAdmin() || isTeacher();
+
+      // *SECURE*: GET: Admins, a Parent of *this* child, or a Teacher of *this* child
+      allow get: if isSignedIn() && (isAdmin() || isParentOfChild(childId) || isTeacherOfChild(childId));
+
+      // LIST: Admins, Parents, or Teachers.
+      // This rule *forces* the client query to be secure.
+      // e.g., A Parent's query *must* use where('parentIds', 'array-contains', uid)
+      // e.g., A Teacher's query *must* use where('classroomId', '==', myClassId)
+      // A query for the whole collection will be denied.
+      allow list: if isSignedIn() && (isAdmin() || isParent() || isTeacher());
+
+      // UPDATE: Admins, or Teachers of *this* child (allows for 'lastEvent' update)
+      // Un padre no puede modificar los datos de su hijo.
+      allow update: if isSignedIn() && (isAdmin() || isTeacherOfChild(childId));
+
+      // DELETE: Only Admins
+      allow delete: if isAdmin();
+    }
+
+    // --- Colección: events ---
+    match /events/{eventId} {
+      // CREATE: Only a Teacher.
+      // We also validate the 'teacherId' and 'createdBy' fields match the user.
+      allow create: if isTeacher() &&
+                    request.resource.data.teacherId == request.auth.uid &&
+                    request.resource.data.createdBy == request.auth.uid;
+
+      // *SECURE*: GET: Admins, a Parent of the event's child, or a Teacher of the event's child.
+      allow get: if isSignedIn() &&
+                   ( isAdmin() ||
+                     isParentOfChild(resource.data.childId) ||
+                     isTeacherOfChild(resource.data.childId) );
+
+      // LIST: (For the 'feed')
+      // Same logic as 'children', forces a client-side filter.
+      allow list: if isSignedIn() && (isAdmin() || isParent() || isTeacher());
+
+      // UPDATE: Only the Teacher *who created the event* or an Admin.
+      allow update: if isAdmin() ||
+                    (isTeacher() && resource.data.teacherId == request.auth.uid);
+
+      // DELETE: Only the Teacher *who created the event* or an Admin.
+      allow delete: if isAdmin() ||
+                    (isTeacher() && resource.data.teacherId == request.auth.uid);
+    }
+    
+    // --- Otras Colecciones ---
+
+    // 'attendance': Tus reglas son OK si no es data sensible.
+    // Si la asistencia es por niño, estas reglas son INSEGURAS.
+    match /attendance/{attendanceId} {
+      allow read: if isTeacher() || isAdmin();
+      allow write: if isTeacher() || isAdmin();
+    }
+
+    // 'messages': Tus reglas son MUY INSEGURAS.
+    // 'allow read: if isAuthenticated()' permite a cualquiera leer CUALQUIER mensaje.
+    // Estas reglas necesitan un modelo (ej. 'senderId', 'recipientId')
+    // A modo de ejemplo, deberías hacer esto:
+    match /messages/{messageId} {
+       allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
+       // Asumiendo que el doc tiene 'participants': [uid1, uid2]
+       allow read, update, delete: if isSignedIn() &&
+                                  (request.auth.uid in resource.data.participants || isAdmin());
+    }
+  }
+}

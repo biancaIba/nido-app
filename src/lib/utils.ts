@@ -2,6 +2,8 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { createAvatar } from "@dicebear/core";
 import { adventurer } from "@dicebear/collection";
+import { format } from "date-fns";
+import { Timestamp } from "firebase/firestore";
 
 /**
  * Combines multiple class names and Tailwind classes efficiently
@@ -32,3 +34,22 @@ export const generateAvatarUrl = (seed: string) => {
  * @returns A random string.
  */
 export const generateRandomSeed = () => Math.random().toString(36).substring(7);
+
+/**
+ * Formats a date of birth that can be either a Timestamp or a string.
+ * @param dateOfBirth - The date of birth as Timestamp or string
+ * @param defaultValue - The default value to return if dateOfBirth is undefined
+ * @returns A formatted date string (dd/MM/yyyy) or the default value
+ */
+export const formatDateOfBirth = (
+  dateOfBirth: string | Timestamp | undefined,
+  defaultValue: string = "No especificada"
+): string => {
+  if (!dateOfBirth) return defaultValue;
+
+  if (dateOfBirth instanceof Timestamp) {
+    return format(dateOfBirth.toDate(), "dd/MM/yyyy");
+  }
+
+  return dateOfBirth;
+};

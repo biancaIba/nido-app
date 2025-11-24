@@ -18,6 +18,7 @@ import {
 import { Classroom } from "@/lib/types";
 import { useAuth } from "@/lib/hooks";
 import { getClassroomById } from "@/lib/services";
+import { formatDateOfBirth } from "@/lib/utils";
 import { Badge, Button } from "@/components/ui";
 import { UserAvatar } from "@/components/features";
 
@@ -67,6 +68,7 @@ export default function MaestroPerfil() {
   const memberSince = user.createdAt
     ? format(user.createdAt.toDate(), "yyyy")
     : "";
+  const formattedDateOfBirth = formatDateOfBirth(user.dateOfBirth);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -157,7 +159,7 @@ export default function MaestroPerfil() {
                     <p className="text-xs text-gray-500 mb-1">
                       Fecha de Nacimiento
                     </p>
-                    <p className="text-gray-900">{user?.dateOfBirth}</p>
+                    <p className="text-gray-900">{formattedDateOfBirth}</p>
                   </div>
                 </div>
               </div>

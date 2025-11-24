@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks";
+import { formatDateOfBirth } from "@/lib/utils";
 import { Badge, Button } from "@/components/ui";
 import { UserAvatar } from "@/components/features";
 
@@ -33,6 +34,8 @@ export default function TutorPerfil() {
   }
 
   const fullName = `${user.firstName} ${user.lastName}`;
+
+  const formattedDateOfBirth = formatDateOfBirth(user.dateOfBirth);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -123,7 +126,7 @@ export default function TutorPerfil() {
                     <p className="text-xs text-gray-500 mb-1">
                       Fecha de Nacimiento
                     </p>
-                    <p className="text-gray-900">{user?.dateOfBirth}</p>
+                    <p className="text-gray-900">{formattedDateOfBirth}</p>
                   </div>
                 </div>
               </div>

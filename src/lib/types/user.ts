@@ -40,6 +40,7 @@ export interface User extends Omit<BaseModel, "id"> {
 
   // Optional profile fields
   avatarSeed?: string;
+  photoURL?: string;
   phone?: string;
   dateOfBirth?: string | Timestamp;
 

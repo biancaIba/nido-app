@@ -17,8 +17,9 @@ import {
   User as FirebaseAuthUser,
 } from "firebase/auth";
 import { Loader2 } from "lucide-react";
+import { doc, updateDoc } from "firebase/firestore";
 
-import { auth } from "@/config";
+import { auth, db } from "@/config";
 import {
   getUserById,
   getUserByEmail,
@@ -91,6 +92,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
                   firstName,
                   lastName,
                   role,
+                  photoURL: firebaseUser.photoURL || undefined,
                 };
 
                 // Create in DB
@@ -98,6 +100,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 await createUserInDb(firebaseUser.uid, newUser as any);
                 userProfile = await getUserById(firebaseUser.uid);
               }
+            }
+
+            // Sync photoURL if it has changed
+            if (userProfile && firebaseUser.photoURL !== userProfile.photoURL) {
+              await updateDoc(doc(db, "users", firebaseUser.uid), {
+                photoURL: firebaseUser.photoURL || null,
+              });
+              userProfile = {
+                ...userProfile,
+                photoURL: firebaseUser.photoURL || undefined,
+              };
             }
 
             setUser(userProfile);

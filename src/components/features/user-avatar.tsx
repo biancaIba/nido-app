@@ -30,7 +30,10 @@ export function UserAvatar({ user, size }: UserAvatarProps) {
       )}
     >
       <AvatarImage
-        src={user.avatarSeed ? generateAvatarUrl(user.avatarSeed) : undefined}
+        src={
+          user.photoURL ||
+          (user.avatarSeed ? generateAvatarUrl(user.avatarSeed) : undefined)
+        }
         alt={user.firstName}
       />
       <AvatarFallback className={cn("text-white text-lg")}>

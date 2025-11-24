@@ -1,5 +1,6 @@
 "use client";
 
+import { format } from "date-fns";
 import {
   Mail,
   Phone,
@@ -13,7 +14,7 @@ import { useAuth } from "@/lib/hooks";
 import { Badge, Button } from "@/components/ui";
 import { UserAvatar } from "@/components/features";
 
-export default function TutorPerfil() {
+export default function AdminPerfil() {
   const { user, loading, logOut } = useAuth();
 
   if (loading) {
@@ -33,6 +34,9 @@ export default function TutorPerfil() {
   }
 
   const fullName = `${user.firstName} ${user.lastName}`;
+  const memberSince = user.createdAt
+    ? format(user.createdAt.toDate(), "yyyy")
+    : "";
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -57,7 +61,7 @@ export default function TutorPerfil() {
                 <div className="flex-1 text-center md:text-left md:ml-4 md:mb-2">
                   <h1 className="text-gray-900 mb-2">{fullName}</h1>
                   <div className="flex items-center justify-center md:justify-start gap-3">
-                    <Badge variant="purple">Tutor/a</Badge>
+                    <Badge variant="purple">Administrador</Badge>
                     <Badge variant="green">Activo</Badge>
                   </div>
                 </div>
@@ -126,6 +130,24 @@ export default function TutorPerfil() {
                     <p className="text-gray-900">{user?.dateOfBirth}</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Info Section (Optional) */}
+          <div className="mt-6 bg-lightning-yellow-500/5 rounded-2xl p-6 border border-lightning-yellow-500/10">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-lg bg-lightning-yellow-500/10 flex items-center justify-center shrink-0">
+                <Calendar className="h-5 w-5 text-lightning-yellow-500" />
+              </div>
+              <div>
+                <h3 className="text-gray-900 mb-1">
+                  Miembro desde {memberSince}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Has estado brindando cuidado excepcional a nuestros pequeños
+                  durante este tiempo. ¡Gracias por tu dedicación!
+                </p>
               </div>
             </div>
           </div>

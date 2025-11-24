@@ -102,6 +102,7 @@ export default function MaestroPerfil() {
                     onClick={() => logOut()}
                     variant="destructive"
                     size="xs"
+                    className="text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                   >
                     <LogOut className="h-4 w-4" />
                     Cerrar Sesión
@@ -234,17 +235,6 @@ export default function MaestroPerfil() {
                 </p>
               </div>
             </div>
-          </div>
-
-          {/* Logout Button */}
-          <div className="md:mb-2">
-            <button
-              onClick={() => logOut()}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-              Cerrar Sesión
-            </button>
           </div>
         </div>
       </main>

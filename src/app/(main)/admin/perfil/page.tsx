@@ -1,17 +1,9 @@
 "use client";
 
 import { format } from "date-fns";
-import {
-  Mail,
-  Phone,
-  Calendar,
-  UserCircle,
-  Loader2,
-  LogOut,
-} from "lucide-react";
+import { Mail, Calendar, UserCircle, Loader2, LogOut } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks";
-import { formatDateOfBirth } from "@/lib/utils";
 import { Badge, Button } from "@/components/ui";
 import { UserAvatar } from "@/components/features";
 
@@ -38,8 +30,6 @@ export default function AdminPerfil() {
   const memberSince = user.createdAt
     ? format(user.createdAt.toDate(), "yyyy")
     : "";
-
-  const formattedDateOfBirth = formatDateOfBirth(user.dateOfBirth);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -107,30 +97,6 @@ export default function AdminPerfil() {
                       Correo Electrónico
                     </p>
                     <p className="text-gray-900 break-all">{user.email}</p>
-                  </div>
-                </div>
-
-                {/* Phone */}
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 mt-0.5">
-                    <Phone className="h-5 w-5 text-gray-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500 mb-1">Teléfono</p>
-                    <p className="text-gray-900">{user?.phone}</p>
-                  </div>
-                </div>
-
-                {/* Date of Birth */}
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 mt-0.5">
-                    <Calendar className="h-5 w-5 text-gray-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500 mb-1">
-                      Fecha de Nacimiento
-                    </p>
-                    <p className="text-gray-900">{formattedDateOfBirth}</p>
                   </div>
                 </div>
               </div>

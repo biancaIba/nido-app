@@ -13,6 +13,7 @@ import {
   DialogFooter,
   Input,
   Label,
+  EmptyState,
 } from "@/components/ui";
 import { Classroom } from "@/lib/types";
 import { createClassroom, getClassrooms } from "@/lib/services";
@@ -75,27 +76,35 @@ export default function SalasPage() {
     <div className="min-h-screen bg-shark-gray-50 pb-20">
       {/* Classrooms List */}
       <div className="space-y-3 px-4 py-4">
-        {classrooms.map((classroom) => (
-          <div
-            key={classroom.id}
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-lightning-yellow-600/10">
-                  <School className="h-6 w-6 text-lightning-yellow-600" />
+        {classrooms.length === 0 ? (
+          <EmptyState
+            title="No hay salas creadas"
+            description="Crea tu primera sala para comenzar a asignar niños y maestros."
+            icon={School}
+          />
+        ) : (
+          classrooms.map((classroom) => (
+            <div
+              key={classroom.id}
+              className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-lightning-yellow-600/10">
+                    <School className="h-6 w-6 text-lightning-yellow-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-shark-gray-900">{classroom.name}</h3>
+                    <p className="text-sm text-shark-gray-900/60">
+                      {/* TODO: Implement student count */}0 niños
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-shark-gray-900">{classroom.name}</h3>
-                  <p className="text-sm text-shark-gray-900/60">
-                    {/* TODO: Implement student count */}0 niños
-                  </p>
-                </div>
+                <Users className="h-5 w-5 text-shark-gray-900/40" />
               </div>
-              <Users className="h-5 w-5 text-shark-gray-900/40" />
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Floating Action Button */}

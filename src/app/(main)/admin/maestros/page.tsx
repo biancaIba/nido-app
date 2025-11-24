@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Edit, Plus } from "lucide-react";
+import { Edit, Plus, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 
 import { User, Classroom } from "@/lib/types";
 import { getTeachers, getClassrooms } from "@/lib/services"; // Usar getTeachers
 import { AddEditTeacher, UserAvatar } from "@/components/features"; // Importar AddEditTeacher
-import { Button } from "@/components/ui";
+import { Button, EmptyState } from "@/components/ui";
 
 export default function MaestrosPage() {
   const [teachers, setTeachers] = useState<User[]>([]);
@@ -91,9 +91,11 @@ export default function MaestrosPage() {
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500">
-            No hay maestros registrados.
-          </p>
+          <EmptyState
+            title="No hay maestros registrados"
+            description="Invita a los maestros para que puedan gestionar sus salas y actividades."
+            icon={GraduationCap}
+          />
         )}
       </div>
 

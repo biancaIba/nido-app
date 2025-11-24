@@ -8,6 +8,7 @@ import {
   Timestamp,
   query,
   where,
+  updateDoc,
 } from "firebase/firestore";
 
 import { db } from "@/config";
@@ -178,5 +179,44 @@ export const createTeacher = async (
     throw new Error(
       "Se envió el correo, pero no se pudo guardar el maestro en la base de datos."
     );
+  }
+};
+
+export const updateTeacher = async (
+  teacherId: string,
+  teacherData: Partial<TeacherFormData>,
+  adminId: string
+): Promise<void> => {
+  try {
+    const teacherRef = doc(db, "users", teacherId);
+
+    const updateData: Partial<User> = {
+      firstName: teacherData.firstName,
+      lastName: teacherData.lastName,
+      updatedAt: Timestamp.now(),
+      updatedBy: adminId,
+    };
+
+    if (teacherData.phone) updateData.phone = teacherData.phone;
+    if (teacherData.dateOfBirth)
+      updateData.dateOfBirth = teacherData.dateOfBirth;
+    if (teacherData.avatarSeed) updateData.avatarSeed = teacherData.avatarSeed;
+
+    if (
+      teacherData.shift ||
+      teacherData.employeeId ||
+      teacherData.classroomIds
+    ) {
+      updateData.teacherProfile = {
+        shift: teacherData.shift,
+        employeeId: teacherData.employeeId,
+        classroomIds: teacherData.classroomIds || [],
+      };
+    }
+
+    await updateDoc(teacherRef, updateData);
+  } catch (error) {
+    console.error("[auth.service] Error updating teacher: ", error);
+    throw new Error("No se pudo actualizar el maestro.");
   }
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, School, Users } from "lucide-react";
+import { Plus, School, Edit } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -16,7 +16,12 @@ import {
   EmptyState,
 } from "@/components/ui";
 import { Classroom, Child } from "@/lib/types";
-import { createClassroom, getClassrooms, getAllChildren } from "@/lib/services";
+import {
+  createClassroom,
+  getClassrooms,
+  getAllChildren,
+  updateClassroom,
+} from "@/lib/services";
 import { useAuth } from "@/lib/hooks";
 
 export default function SalasPage() {
@@ -27,6 +32,9 @@ export default function SalasPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newClassroomName, setNewClassroomName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingClassroom, setEditingClassroom] = useState<Classroom | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,7 +65,7 @@ export default function SalasPage() {
     {} as Record<string, number>
   );
 
-  const handleAddClassroom = async () => {
+  const handleSaveClassroom = async () => {
     if (!newClassroomName.trim() || !user?.uid) {
       toast.error("Por favor ingresa un nombre para la sala.");
       return;
@@ -65,17 +73,34 @@ export default function SalasPage() {
 
     setIsSubmitting(true);
     try {
-      const newClassroom = await createClassroom(newClassroomName, user.uid);
-      setClassrooms((prev) => [...prev, newClassroom]);
+      if (editingClassroom) {
+        await updateClassroom(editingClassroom.id, newClassroomName, user.uid);
+        setClassrooms((prev) =>
+          prev.map((c) =>
+            c.id === editingClassroom.id ? { ...c, name: newClassroomName } : c
+          )
+        );
+        toast.success(`Sala "${newClassroomName}" actualizada exitosamente.`);
+      } else {
+        const newClassroom = await createClassroom(newClassroomName, user.uid);
+        setClassrooms((prev) => [...prev, newClassroom]);
+        toast.success(`Sala "${newClassroomName}" creada exitosamente.`);
+      }
       setNewClassroomName("");
+      setEditingClassroom(null);
       setIsDialogOpen(false);
-      toast.success(`Sala "${newClassroomName}" creada exitosamente.`);
     } catch (error) {
       console.error(error);
-      toast.error("No se pudo crear la sala.");
+      toast.error("No se pudo guardar la sala.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const openEditDialog = (classroom: Classroom) => {
+    setEditingClassroom(classroom);
+    setNewClassroomName(classroom.name);
+    setIsDialogOpen(true);
   };
 
   if (isLoading) {
@@ -114,7 +139,9 @@ export default function SalasPage() {
                     </p>
                   </div>
                 </div>
-                <Users className="h-5 w-5 text-shark-gray-900/40" />
+                <button onClick={() => openEditDialog(classroom)}>
+                  <Edit className="h-5 w-5 text-shark-gray-400" />
+                </button>
               </div>
             </div>
           ))
@@ -123,17 +150,23 @@ export default function SalasPage() {
 
       {/* Floating Action Button */}
       <Button
-        onClick={() => setIsDialogOpen(true)}
+        onClick={() => {
+          setEditingClassroom(null);
+          setNewClassroomName("");
+          setIsDialogOpen(true);
+        }}
         className="fixed bottom-24 right-4 h-14 w-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110"
       >
         <Plus className="h-6 w-6" />
       </Button>
 
-      {/* Add Classroom Dialog */}
+      {/* Add/Edit Classroom Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
           <DialogHeader>
-            <DialogTitle>Nueva Sala</DialogTitle>
+            <DialogTitle>
+              {editingClassroom ? "Editar Sala" : "Nueva Sala"}
+            </DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <Label htmlFor="classroom-name" className="mb-2 block">
@@ -153,13 +186,14 @@ export default function SalasPage() {
               onClick={() => {
                 setIsDialogOpen(false);
                 setNewClassroomName("");
+                setEditingClassroom(null);
               }}
               className="flex-1"
               disabled={isSubmitting}
             >
               Cancelar
             </Button>
-            <Button onClick={handleAddClassroom} disabled={isSubmitting}>
+            <Button onClick={handleSaveClassroom} disabled={isSubmitting}>
               {isSubmitting ? "Guardando..." : "Guardar"}
             </Button>
           </DialogFooter>

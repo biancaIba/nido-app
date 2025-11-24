@@ -14,6 +14,7 @@ export default function MaestrosPage() {
   const [classrooms, setClassrooms] = useState<Classroom[]>([]); // Necesitamos las salas para el formulario
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingTeacher, setIsAddingTeacher] = useState(false);
+  const [editingTeacher, setEditingTeacher] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,17 +37,28 @@ export default function MaestrosPage() {
     fetchData();
   }, []);
 
-  const handleSaveSuccess = (newTeacher: User) => {
-    setTeachers((prev) => [...prev, newTeacher]);
+  const handleSaveSuccess = (savedTeacher: User) => {
+    setTeachers((prev) => {
+      const exists = prev.some((t) => t.uid === savedTeacher.uid);
+      if (exists) {
+        return prev.map((t) => (t.uid === savedTeacher.uid ? savedTeacher : t));
+      }
+      return [...prev, savedTeacher];
+    });
     setIsAddingTeacher(false);
+    setEditingTeacher(null);
   };
 
-  if (isAddingTeacher) {
+  if (isAddingTeacher || editingTeacher) {
     return (
       <AddEditTeacher
-        onBack={() => setIsAddingTeacher(false)}
+        onBack={() => {
+          setIsAddingTeacher(false);
+          setEditingTeacher(null);
+        }}
         onSaveSuccess={handleSaveSuccess}
         classrooms={classrooms} // Pasar las salas al formulario
+        initialData={editingTeacher || undefined}
       />
     );
   }
@@ -80,11 +92,7 @@ export default function MaestrosPage() {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => {
-                    /* TODO: Edit */
-                  }}
-                >
+                <button onClick={() => setEditingTeacher(teacher)}>
                   <Edit className="h-5 w-5 text-shark-gray-400" />
                 </button>
               </div>

@@ -69,7 +69,7 @@ export default function Usuarios() {
         cellClass: "py-3",
         cellRenderer: () => (
           <Badge variant="green" size="lg">
-            Active
+            Activo
           </Badge>
         ),
       },

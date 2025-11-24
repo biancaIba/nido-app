@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
+import { Timestamp } from "firebase/firestore";
 
 import { useAuth } from "@/lib/hooks";
-import { createTeacher } from "@/lib/services";
+import { createTeacher, updateTeacher } from "@/lib/services";
 import { generateAvatarUrl, generateRandomSeed } from "@/lib/utils";
 import { Classroom, TeacherFormData, User } from "@/lib/types";
 import {
@@ -20,12 +21,14 @@ interface AddEditTeacherProps {
   onBack: () => void;
   onSaveSuccess: (newTeacher: User) => void;
   classrooms: Classroom[];
+  initialData?: User;
 }
 
 export function AddEditTeacher({
   onBack,
   onSaveSuccess,
   classrooms,
+  initialData,
 }: AddEditTeacherProps) {
   const { user } = useAuth();
   const [formData, setFormData] = useState<TeacherFormData>({
@@ -41,12 +44,37 @@ export function AddEditTeacher({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (initialData) {
+      let dob = "";
+      if (initialData.dateOfBirth) {
+        if (initialData.dateOfBirth instanceof Timestamp) {
+          dob = initialData.dateOfBirth.toDate().toISOString().split("T")[0];
+        } else if (typeof initialData.dateOfBirth === "string") {
+          dob = initialData.dateOfBirth;
+        }
+      }
+
+      setFormData({
+        firstName: initialData.firstName,
+        lastName: initialData.lastName,
+        email: initialData.email,
+        avatarSeed: initialData.avatarSeed || "",
+        classroomIds: initialData.teacherProfile?.classroomIds || [],
+        phone: initialData.phone || "",
+        dateOfBirth: dob,
+        shift: initialData.teacherProfile?.shift || "",
+        employeeId: initialData.teacherProfile?.employeeId || "",
+      });
+    }
+  }, [initialData]);
+
   const avatarSeedOptions = useMemo(
     () => Array.from({ length: 6 }, () => generateRandomSeed()),
     []
   );
 
-  if (!formData.avatarSeed && avatarSeedOptions.length > 0) {
+  if (!formData.avatarSeed && avatarSeedOptions.length > 0 && !initialData) {
     setFormData((prev) => ({ ...prev, avatarSeed: avatarSeedOptions[0] }));
   }
 
@@ -77,11 +105,19 @@ export function AddEditTeacher({
 
     setIsSubmitting(true);
     try {
-      const newTeacher = await createTeacher(formData, user.uid);
-      toast.success(`Maestro "${newTeacher.firstName}" creado exitosamente.`);
-      onSaveSuccess(newTeacher);
+      if (initialData) {
+        await updateTeacher(initialData.uid, formData, user.uid);
+        toast.success(
+          `Maestro "${formData.firstName}" actualizado exitosamente.`
+        );
+        onSaveSuccess({ ...initialData, ...formData });
+      } else {
+        const newTeacher = await createTeacher(formData, user.uid);
+        toast.success(`Maestro "${newTeacher.firstName}" creado exitosamente.`);
+        onSaveSuccess(newTeacher);
+      }
     } catch (error) {
-      console.error("Error creating teacher:", error);
+      console.error("Error saving teacher:", error);
       toast.error("No se pudo guardar el maestro.");
     } finally {
       setIsSubmitting(false);
@@ -229,7 +265,7 @@ export function AddEditTeacher({
         </div>
 
         <div>
-          <h3 className="text-shark-gray-900 mb-2">Turno</h3>
+          <h3 className="text-shark-gray-900 mb-2">Nro Empleado</h3>
           <Input
             id="employeeId"
             name="employeeId"

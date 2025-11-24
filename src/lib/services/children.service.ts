@@ -8,6 +8,7 @@ import {
   query,
   serverTimestamp,
   Timestamp,
+  updateDoc,
   where,
 } from "firebase/firestore";
 
@@ -117,6 +118,32 @@ export const createChild = async (
   }
 };
 
+export const updateChild = async (
+  childId: string,
+  childData: Partial<ChildFormData>,
+  adminId: string
+): Promise<void> => {
+  try {
+    const childRef = doc(db, "children", childId);
+
+    const { dateOfBirth, ...otherData } = childData;
+    const updateData: Partial<Child> = {
+      ...otherData,
+      updatedAt: serverTimestamp() as Timestamp,
+      updatedBy: adminId,
+    };
+
+    if (dateOfBirth) {
+      updateData.dateOfBirth = Timestamp.fromDate(new Date(dateOfBirth));
+    }
+
+    await updateDoc(childRef, updateData);
+  } catch (error) {
+    console.error("[children.service] Error updating child: ", error);
+    throw new Error("No se pudo actualizar el alumno.");
+  }
+};
+
 export const getChildrenByClassroomId = async (
   classroomId: string
 ): Promise<Child[]> => {
@@ -162,6 +189,8 @@ export const getChildById = async (childId: string): Promise<Child | null> => {
 
 /**
  * Retrieves multiple children by their document IDs.
+ * @param ids An array of child document IDs.
+ * @returns A promise that resolves to an array of Child objects.
  * @param ids An array of child document IDs.
  * @returns A promise that resolves to an array of Child objects.
  */

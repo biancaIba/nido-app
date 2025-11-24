@@ -14,6 +14,7 @@ export default function NiniosPage() {
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingChild, setIsAddingChild] = useState(false);
+  const [editingChild, setEditingChild] = useState<Child | null>(null);
 
   // Create a lookup map for classroom names for efficient access
   const classroomNameMap = useMemo(() => {
@@ -53,17 +54,28 @@ export default function NiniosPage() {
     fetchData();
   }, []);
 
-  const handleSaveSuccess = (newChild: Child) => {
-    setChildren((prev) => [...prev, newChild]);
+  const handleSaveSuccess = (savedChild: Child) => {
+    setChildren((prev) => {
+      const exists = prev.some((c) => c.id === savedChild.id);
+      if (exists) {
+        return prev.map((c) => (c.id === savedChild.id ? savedChild : c));
+      }
+      return [...prev, savedChild];
+    });
     setIsAddingChild(false);
+    setEditingChild(null);
   };
 
-  if (isAddingChild) {
+  if (isAddingChild || editingChild) {
     return (
       <AddEditChild
-        onBack={() => setIsAddingChild(false)}
+        onBack={() => {
+          setIsAddingChild(false);
+          setEditingChild(null);
+        }}
         onSaveSuccess={handleSaveSuccess}
         classrooms={classrooms}
+        initialData={editingChild || undefined}
       />
     );
   }
@@ -110,11 +122,7 @@ export default function NiniosPage() {
                           </p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => {
-                          /* TODO: Implement edit functionality */
-                        }}
-                      >
+                      <button onClick={() => setEditingChild(child)}>
                         <Edit className="h-5 w-5 text-shark-gray-400" />
                       </button>
                     </div>

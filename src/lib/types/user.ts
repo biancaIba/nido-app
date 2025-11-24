@@ -1,5 +1,6 @@
 // src/types/user.ts
 import { BaseModel } from "@/lib/types";
+import { Timestamp } from "firebase/firestore";
 
 export type UserRole = "admin" | "teacher" | "parent";
 
@@ -40,7 +41,7 @@ export interface User extends Omit<BaseModel, "id"> {
   // Optional profile fields
   avatarSeed?: string;
   phone?: string;
-  dateOfBirth?: string;
+  dateOfBirth?: string | Timestamp;
 
   childrenIds?: string[]; // Array of Child IDs for parents
 

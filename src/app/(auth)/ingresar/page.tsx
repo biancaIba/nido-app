@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
@@ -11,13 +11,26 @@ import { Button, Input } from "@/components/ui";
 import { LogoNido } from "@/components/features";
 
 export default function LoginPage() {
-  const { signInWithEmail, signInWithGoogle, loading, authError } = useAuth();
+  const {
+    signInWithEmail,
+    signInWithGoogle,
+    clearAuthError,
+    loading,
+    authError,
+  } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
+
+  useEffect(() => {
+    // La función retornada en useEffect se ejecuta cuando el componente se desmonta
+    return () => {
+      clearAuthError();
+    };
+  }, [clearAuthError]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -142,7 +155,7 @@ export default function LoginPage() {
             <div className="mt-6">
               <Button
                 onClick={signInWithGoogle}
-                className="w-full flex items-center justify-center gap-3 py-2 px-6 border border-gray-300 rounded-lg bg-white text-gray-700 font-medium shadow-sm hover:bg-gray-50 active:bg-gray-100 transition w-full max-w-sm"
+                className="flex items-center justify-center gap-3 py-2 px-6 border border-gray-300 rounded-lg bg-white text-gray-700 font-medium shadow-sm hover:bg-gray-50 active:bg-gray-100 transition w-full max-w-sm"
               >
                 <svg
                   version="1.1"

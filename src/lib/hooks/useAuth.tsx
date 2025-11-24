@@ -36,6 +36,7 @@ interface AuthContextType {
     password: string
   ) => Promise<FirebaseAuthUser | null>;
   authError: string | null;
+  clearAuthError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -76,6 +77,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
     console.error(error);
   };
+
+  const clearAuthError = useCallback(() => {
+    setAuthError(null);
+  }, []);
 
   const signInWithGoogle = useCallback(async () => {
     const provider = new GoogleAuthProvider();
@@ -145,6 +150,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signInWithEmail,
     signUpWithEmail,
     authError,
+    clearAuthError,
   };
 
   // Show a global loader while we are verifying the user session.

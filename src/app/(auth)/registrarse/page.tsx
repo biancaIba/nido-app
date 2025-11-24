@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
@@ -11,13 +11,19 @@ import { Button, Input } from "@/components/ui";
 import { LogoNido } from "@/components/features";
 
 export default function Register() {
-  const { signUpWithEmail, loading, authError } = useAuth();
+  const { signUpWithEmail, clearAuthError, loading, authError } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
+
+  useEffect(() => {
+    return () => {
+      clearAuthError();
+    };
+  }, [clearAuthError]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();

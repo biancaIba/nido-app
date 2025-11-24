@@ -15,33 +15,47 @@ import {
   Label,
   EmptyState,
 } from "@/components/ui";
-import { Classroom } from "@/lib/types";
-import { createClassroom, getClassrooms } from "@/lib/services";
+import { Classroom, Child } from "@/lib/types";
+import { createClassroom, getClassrooms, getAllChildren } from "@/lib/services";
 import { useAuth } from "@/lib/hooks";
 
 export default function SalasPage() {
   const { user } = useAuth();
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+  const [children, setChildren] = useState<Child[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newClassroomName, setNewClassroomName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchClassrooms = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const fetchedClassrooms = await getClassrooms();
+        const [fetchedClassrooms, fetchedChildren] = await Promise.all([
+          getClassrooms(),
+          getAllChildren(),
+        ]);
         setClassrooms(fetchedClassrooms);
+        setChildren(fetchedChildren);
       } catch (error) {
         console.error(error);
-        toast.error("Error al cargar las salas.");
+        toast.error("Error al cargar los datos.");
       } finally {
         setIsLoading(false);
       }
     };
-    fetchClassrooms();
+    fetchData();
   }, []);
+
+  const studentCounts = children.reduce(
+    (acc, child) => {
+      const classroomId = child.classroomId || "unassigned";
+      acc[classroomId] = (acc[classroomId] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   const handleAddClassroom = async () => {
     if (!newClassroomName.trim() || !user?.uid) {
@@ -96,7 +110,7 @@ export default function SalasPage() {
                   <div>
                     <h3 className="text-shark-gray-900">{classroom.name}</h3>
                     <p className="text-sm text-shark-gray-900/60">
-                      {/* TODO: Implement student count */}0 niños
+                      {studentCounts[classroom.id] || 0} niños
                     </p>
                   </div>
                 </div>

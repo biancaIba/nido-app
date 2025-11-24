@@ -4,6 +4,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  deleteDoc,
   Timestamp,
   query,
   where,
@@ -19,12 +20,13 @@ export async function createUserInDb(
   uid: string,
   userData: Omit<
     User,
-    "id" | "createdAt" | "updatedAt" | "createdBy" | "updatedBy"
+    "uid" | "createdAt" | "updatedAt" | "createdBy" | "updatedBy"
   >
 ) {
   const userRef = doc(db, "users", uid);
   const dataWithBaseFields = {
     ...userData,
+    uid,
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
     createdBy: uid,
@@ -38,7 +40,7 @@ export async function createUserInDb(
 export async function getUsers(): Promise<User[]> {
   const snapshot = await getDocs(usersCollection);
   return snapshot.docs.map(
-    (doc) => ({ id: doc.id, ...doc.data() }) as unknown as User
+    (doc) => ({ uid: doc.id, ...doc.data() }) as unknown as User
   );
 }
 
@@ -46,8 +48,46 @@ export async function getUserById(id: string): Promise<User | null> {
   const docRef = doc(db, "users", id);
   const docSnap = await getDoc(docRef);
   return docSnap.exists()
-    ? ({ id: docSnap.id, ...docSnap.data() } as unknown as User)
+    ? ({ uid: docSnap.id, ...docSnap.data() } as unknown as User)
     : null;
+}
+
+export async function getUserByEmail(email: string): Promise<User | null> {
+  const q = query(usersCollection, where("email", "==", email));
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  const doc = snapshot.docs[0];
+  return { uid: doc.id, ...doc.data() } as unknown as User;
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  const userRef = doc(db, "users", id);
+  await deleteDoc(userRef);
+}
+
+export async function migrateUser(
+  oldId: string,
+  newId: string,
+  data: User
+): Promise<User> {
+  const newUserRef = doc(db, "users", newId);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { uid, ...userData } = data;
+
+  const newUserData = {
+    ...userData,
+    uid: newId,
+    updatedAt: Timestamp.now(),
+  };
+
+  await setDoc(newUserRef, newUserData);
+  await deleteUser(oldId);
+
+  return { ...newUserData } as unknown as User;
 }
 
 /**

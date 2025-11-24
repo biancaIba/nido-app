@@ -9,7 +9,6 @@ import { Loader2 } from "lucide-react";
 import { getUsers } from "@/lib/services";
 import { UserAvatar } from "@/components/features";
 
-// TODO: Mapear roles para mostrar nombres más amigables
 const roleMap: Record<string, string> = {
   admin: "Administrador",
   parent: "Tutor",

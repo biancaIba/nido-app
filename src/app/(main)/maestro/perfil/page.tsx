@@ -11,7 +11,6 @@ import {
   IdCard,
   Users,
   UserCircle,
-  Loader2,
   LogOut,
 } from "lucide-react";
 
@@ -20,7 +19,7 @@ import { useAuth } from "@/lib/hooks";
 import { getClassroomById } from "@/lib/services";
 import { formatDateOfBirth } from "@/lib/utils";
 import { Badge, Button } from "@/components/ui";
-import { UserAvatar } from "@/components/features";
+import { UserAvatar, ProfileFormSkeleton } from "@/components/features";
 
 export default function MaestroPerfil() {
   const { user, loading, logOut } = useAuth();
@@ -49,11 +48,7 @@ export default function MaestroPerfil() {
   }, [user]);
 
   if (loading) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-      </div>
-    );
+    return <ProfileFormSkeleton />;
   }
 
   if (!user) {

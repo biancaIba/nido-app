@@ -5,13 +5,17 @@ import { Edit, Plus, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 
 import { User, Classroom } from "@/lib/types";
-import { getTeachers, getClassrooms } from "@/lib/services"; // Usar getTeachers
-import { AddEditTeacher, UserAvatar } from "@/components/features"; // Importar AddEditTeacher
+import { getTeachers, getClassrooms } from "@/lib/services";
+import {
+  AddEditTeacher,
+  UserAvatar,
+  ManagementListSkeleton,
+} from "@/components/features";
 import { Button, EmptyState } from "@/components/ui";
 
 export default function MaestrosPage() {
   const [teachers, setTeachers] = useState<User[]>([]);
-  const [classrooms, setClassrooms] = useState<Classroom[]>([]); // Necesitamos las salas para el formulario
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingTeacher, setIsAddingTeacher] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState<User | null>(null);
@@ -48,6 +52,10 @@ export default function MaestrosPage() {
     setIsAddingTeacher(false);
     setEditingTeacher(null);
   };
+
+  if (isLoading) {
+    return <ManagementListSkeleton />;
+  }
 
   if (isAddingTeacher || editingTeacher) {
     return (

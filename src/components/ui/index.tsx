@@ -14,3 +14,4 @@ export * from "./sheet";
 export * from "./sonner";
 export * from "./textarea";
 export * from "./empty-state";
+export * from "./skeleton";

@@ -6,7 +6,11 @@ import { toast } from "sonner";
 
 import { Child, Classroom, User } from "@/lib/types";
 import { getAllChildren, getClassrooms } from "@/lib/services";
-import { AddEditChild, UserAvatar } from "@/components/features";
+import {
+  AddEditChild,
+  UserAvatar,
+  ManagementListSkeleton,
+} from "@/components/features";
 import { Button, EmptyState } from "@/components/ui";
 
 export default function NiniosPage() {
@@ -65,6 +69,10 @@ export default function NiniosPage() {
     setIsAddingChild(false);
     setEditingChild(null);
   };
+
+  if (isLoading) {
+    return <ManagementListSkeleton />;
+  }
 
   if (isAddingChild || editingChild) {
     return (

@@ -9,7 +9,7 @@ import {
   startOfDay as startOfDate,
 } from "date-fns";
 import { es } from "date-fns/locale";
-import { Loader2, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks";
 import { Child, Event, Classroom, User } from "@/lib/types";
@@ -18,7 +18,11 @@ import {
   getEventsByChildId,
   getClassroomById,
 } from "@/lib/services";
-import { EventTimelineItem, UserAvatar } from "@/components/features";
+import {
+  EventTimelineItem,
+  UserAvatar,
+  ParentTimelineSkeleton,
+} from "@/components/features";
 import {
   Button,
   Select,
@@ -180,10 +184,7 @@ export default function ParentDashboard() {
       </div>
 
       {isLoadingEvents ? (
-        <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-shark-gray-400" />
-          <p className="text-shark-gray-500">Cargando eventos...</p>
-        </div>
+        <ParentTimelineSkeleton />
       ) : error ? (
         <div className="rounded-lg border-2 border-dashed border-red-200 bg-red-50 p-12 text-center">
           <p className="text-red-600">{error}</p>

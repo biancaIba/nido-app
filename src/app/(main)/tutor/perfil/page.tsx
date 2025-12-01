@@ -1,28 +1,19 @@
 "use client";
 
-import {
-  Mail,
-  Phone,
-  Calendar,
-  UserCircle,
-  Loader2,
-  LogOut,
-} from "lucide-react";
+import { Mail, Phone, Calendar, UserCircle, LogOut } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks";
 import { formatDateOfBirth } from "@/lib/utils";
 import { Badge, Button } from "@/components/ui";
-import { UserAvatar } from "@/components/features";
+import { UserAvatar, ProfileFormSkeleton } from "@/components/features";
 
 export default function TutorPerfil() {
   const { user, loading, logOut } = useAuth();
 
   if (loading) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-      </div>
-    );
+    if (loading) {
+      return <ProfileFormSkeleton />;
+    }
   }
 
   if (!user) {

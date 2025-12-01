@@ -23,6 +23,7 @@ import {
   updateClassroom,
 } from "@/lib/services";
 import { useAuth } from "@/lib/hooks";
+import { ManagementListSkeleton } from "@/components/features";
 
 export default function SalasPage() {
   const { user } = useAuth();
@@ -55,6 +56,10 @@ export default function SalasPage() {
     };
     fetchData();
   }, []);
+
+  if (isLoading) {
+    return <ManagementListSkeleton />;
+  }
 
   const studentCounts = children.reduce(
     (acc, child) => {

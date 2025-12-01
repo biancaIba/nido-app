@@ -88,14 +88,6 @@ export default function NiniosPage() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Cargando niños...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-shark-gray-50 pb-20">
       {/* Grouped Children List */}

@@ -108,14 +108,6 @@ export default function SalasPage() {
     setIsDialogOpen(true);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Cargando salas...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-shark-gray-50 pb-20">
       {/* Classrooms List */}

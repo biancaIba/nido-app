@@ -71,14 +71,6 @@ export default function MaestrosPage() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Cargando maestros...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-shark-gray-50 pb-20">
       <div className="space-y-6 px-4 py-4">

@@ -5,16 +5,6 @@ import { Timestamp } from "firebase/firestore";
 export type UserRole = "admin" | "teacher" | "parent";
 
 /**
- * Profile data specific to users with the 'teacher' role.
- * This object will be present on the User document if the user is a teacher.
- */
-export interface TeacherProfile {
-  shift?: string;
-  employeeId?: string;
-  classroomIds: string[]; // IDs of the classrooms the teacher is assigned to
-}
-
-/**
  * Form data for creating or editing a teacher.
  */
 export interface TeacherFormData extends TeacherProfile {
@@ -23,9 +13,18 @@ export interface TeacherFormData extends TeacherProfile {
   lastName: string;
 
   // Optional profile fields
-  avatarSeed?: string;
   phone?: string;
   dateOfBirth?: string;
+}
+
+/**
+ * Profile data specific to users with the 'teacher' role.
+ * This object will be present on the User document if the user is a teacher.
+ */
+export interface TeacherProfile {
+  shift?: string;
+  employeeId?: string;
+  classroomIds: string[]; // IDs of the classrooms the teacher is assigned to
 }
 
 // We Omit 'id' from BaseModel because 'uid' IS the document ID.
@@ -39,7 +38,6 @@ export interface User extends Omit<BaseModel, "id"> {
   role: UserRole[];
 
   // Optional profile fields
-  avatarSeed?: string;
   photoURL?: string;
   phone?: string;
   dateOfBirth?: string | Timestamp;

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Edit, Plus, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { Child, Classroom, User } from "@/lib/types";
+import { Child, Classroom } from "@/lib/types";
 import { getAllChildren, getClassrooms } from "@/lib/services";
 import {
   AddEditChild,
@@ -112,7 +112,7 @@ export default function NiniosPage() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <UserAvatar user={child as unknown as User} size="sm" />
+                        <UserAvatar user={child} size="sm" />
                         <div>
                           <h3 className="text-shark-gray-900">
                             {child.firstName} {child.lastName}

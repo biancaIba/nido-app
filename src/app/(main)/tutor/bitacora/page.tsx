@@ -12,7 +12,7 @@ import { es } from "date-fns/locale";
 import { FileText, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks";
-import { Child, Event, Classroom, User } from "@/lib/types";
+import { Child, Event, Classroom } from "@/lib/types";
 import {
   getChildrenByIds,
   getEventsByChildId,
@@ -140,7 +140,7 @@ export default function ParentDashboard() {
 
       {selectedChild && (
         <header className="mb-6 ml-2 flex items-center gap-4">
-          <UserAvatar user={selectedChild as unknown as User} size="sm" />
+          <UserAvatar user={selectedChild} size="sm" />
           <div>
             <h1 className="text-xl font-bold text-shark-gray-900">
               {selectedChild.firstName} {selectedChild.lastName}

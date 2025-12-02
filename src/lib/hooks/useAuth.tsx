@@ -16,7 +16,6 @@ import {
   createUserWithEmailAndPassword,
   User as FirebaseAuthUser,
 } from "firebase/auth";
-import { Loader2 } from "lucide-react";
 import { doc, updateDoc } from "firebase/firestore";
 
 import { auth, db } from "@/config";
@@ -214,15 +213,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     authError,
     clearAuthError,
   };
-
-  // Show a global loader while we are verifying the user session.
-  if (loading) {
-    return (
-      <div className="flex flex-col h-screen w-full items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-shark-gray-400" />
-      </div>
-    );
-  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

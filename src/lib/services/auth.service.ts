@@ -148,7 +148,6 @@ export const createTeacher = async (
       lastName: teacherData.lastName,
       role: ["teacher"],
 
-      avatarSeed: teacherData.avatarSeed,
       phone: teacherData.phone,
       dateOfBirth: teacherData.dateOfBirth,
 

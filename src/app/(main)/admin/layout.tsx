@@ -11,7 +11,6 @@ const navItems = [
   { href: "/admin/salas", label: "Salas", icon: School },
   { href: "/admin/ninios", label: "Niños", icon: Baby },
   { href: "/admin/maestros", label: "Maestros", icon: GraduationCap },
-  // { href: "/admin/usuarios", label: "Usuarios", icon: UsersRoundIcon },
   { href: "/admin/perfil", label: "Perfil", icon: User },
 ];
 

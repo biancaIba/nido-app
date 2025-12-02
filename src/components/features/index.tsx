@@ -7,7 +7,7 @@ export * from "./event-timeline-item";
 export * from "./parent-invitation-email";
 export * from "./teacher-invitation-name";
 export * from "./skeletons/teacher-dashboard-skeleton";
-export * from "./skeletons/parent-timeline-skeleton";
+export * from "./skeletons/event-timeline-skeleton";
 export * from "./skeletons/event-registration-form-skeleton";
 export * from "./skeletons/management-list-skeleton";
 export * from "./skeletons/profile-form-skeleton";

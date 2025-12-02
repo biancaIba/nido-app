@@ -21,7 +21,7 @@ import {
 import {
   EventTimelineItem,
   UserAvatar,
-  ParentTimelineSkeleton,
+  EventTimelineSkeleton,
 } from "@/components/features";
 import {
   Button,
@@ -184,7 +184,7 @@ export default function ParentDashboard() {
       </div>
 
       {isLoadingEvents ? (
-        <ParentTimelineSkeleton />
+        <EventTimelineSkeleton />
       ) : error ? (
         <div className="rounded-lg border-2 border-dashed border-red-200 bg-red-50 p-12 text-center">
           <p className="text-red-600">{error}</p>

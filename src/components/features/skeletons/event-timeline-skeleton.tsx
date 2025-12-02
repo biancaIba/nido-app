@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function ParentTimelineSkeleton() {
+export function EventTimelineSkeleton() {
   return (
     <div className="space-y-6 p-4">
       {/* Simulate 5-7 timeline items */}

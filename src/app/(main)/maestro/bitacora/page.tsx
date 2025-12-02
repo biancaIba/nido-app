@@ -15,9 +15,8 @@ import { FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/lib/hooks";
 import { Child, Event, Classroom } from "@/lib/types";
 import {
-  getChildrenByIds,
+  getChildrenByClassroomId,
   getEventsByChildId,
-  getClassroomById,
   getClassrooms,
 } from "@/lib/services";
 import {
@@ -36,8 +35,8 @@ import {
 export default function MaestroBitacora() {
   const { user } = useAuth();
 
-  const [selectedClassroom, setSelectedClassroom] = useState<string>("");
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+  const [selectedClassroom, setSelectedClassroom] = useState<string>("");
 
   const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -45,70 +44,96 @@ export default function MaestroBitacora() {
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
 
   const [events, setEvents] = useState<Event[]>([]);
-  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
-
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Effect 1: Fetch the teacher's assigned classrooms
   useEffect(() => {
+    if (!user?.teacherProfile?.classroomIds) {
+      // If the user is not a teacher or has no classrooms, do nothing.
+      // We might set an error or an empty state here in the future.
+      if (user) setIsLoading(false); // Stop loading if user is loaded but not a teacher
+      return;
+    }
+
     const fetchClassrooms = async () => {
       try {
-        const fetchedClassrooms = await getClassrooms();
-        setClassrooms(fetchedClassrooms);
-        if (fetchedClassrooms.length > 0) {
-          setSelectedClassroom(fetchedClassrooms[0].id);
+        const allClassrooms = await getClassrooms();
+        const teacherClassroomIds = new Set(user.teacherProfile!.classroomIds);
+        const assignedClassrooms = allClassrooms.filter((room) =>
+          teacherClassroomIds.has(room.id)
+        );
+
+        setClassrooms(assignedClassrooms);
+        if (assignedClassrooms.length > 0) {
+          setSelectedClassroom(assignedClassrooms[0].id);
+        } else {
+          // No classrooms assigned, stop loading and show empty state.
+          setIsLoading(false);
         }
       } catch (error) {
-        setError("No se pudieron cargar las salas.");
+        setError("No se pudieron cargar las salas asignadas.");
+        setIsLoading(false);
       }
     };
     fetchClassrooms();
-  }, []);
+  }, [user]);
 
+  // Effect 2: Fetch children when a classroom is selected
   useEffect(() => {
-    if (!user || !user.childrenIds || user.childrenIds.length === 0) {
+    if (!selectedClassroom) {
+      setAllChildren([]);
+      setSelectedChildId(null);
+      setEvents([]);
       return;
     }
 
     const fetchChildren = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
-        const childrenData = await getChildrenByIds(user.childrenIds!);
+        const childrenData = await getChildrenByClassroomId(selectedClassroom);
         setAllChildren(childrenData);
         if (childrenData.length > 0) {
           setSelectedChildId(childrenData[0].id);
+        } else {
+          // No children in this classroom, clear events and stop loading.
+          setSelectedChildId(null);
+          setEvents([]);
+          setIsLoading(false);
         }
       } catch (error) {
-        setError("No se pudo cargar la lista de niños.");
+        setError("No se pudo cargar la lista de niños de la sala.");
+        setIsLoading(false);
       }
     };
 
     fetchChildren();
-  }, [user]);
+  }, [selectedClassroom]);
 
+  // Effect 3: Fetch events when a child or date is selected
   useEffect(() => {
-    if (!selectedChildId) return;
+    if (!selectedChildId) {
+      // If no child is selected (e.g., empty classroom), ensure loading is false.
+      if (allChildren.length === 0) setIsLoading(false);
+      return;
+    }
 
     const fetchDataForChild = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
-        setIsLoadingEvents(true);
-        setError(null);
-        const child = allChildren.find((c) => c.id === selectedChildId);
-        if (!child) return;
-
-        const [classroomData, eventsData] = await Promise.all([
-          getClassroomById(child.classroomId),
-          getEventsByChildId(selectedChildId, selectedDate),
-        ]);
-
-        setClassrooms([classroomData as Classroom]);
+        const eventsData = await getEventsByChildId(
+          selectedChildId,
+          selectedDate
+        );
         setEvents(eventsData);
       } catch (err) {
         setError(
-          err instanceof Error
-            ? err.message
-            : "No se pudo cargar la información."
+          err instanceof Error ? err.message : "No se pudo cargar la bitácora."
         );
       } finally {
-        setIsLoadingEvents(false);
+        setIsLoading(false);
       }
     };
 
@@ -131,6 +156,8 @@ export default function MaestroBitacora() {
 
   const isNextDayDisabled = isToday(startOfDate(selectedDate));
 
+  const hasContent = classrooms.length > 0 && allChildren.length > 0;
+
   return (
     <>
       {/* Classroom Selector */}
@@ -149,81 +176,98 @@ export default function MaestroBitacora() {
         </Select>
       </div>
 
-      {/* Date Navigator */}
-      <div className="rounded-lg border-b bg-white p-4 mb-2">
-        <div className="flex items-center justify-between gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handlePreviousDay}
-            className="h-10 w-10 shrink-0"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1 text-center">
-            <p className="font-semibold capitalize text-shark-gray-900">
-              {formatDateHeader(selectedDate)}
-            </p>
-            <p className="text-sm text-shark-gray-500">
-              {format(selectedDate, "d 'de' MMMM 'de' yyyy", { locale: es })}
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleNextDay}
-            disabled={isNextDayDisabled}
-            className="h-10 w-10 shrink-0"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Selector de Niño (si hay más de uno) */}
-      {allChildren.length > 1 && (
-        <div className="mb-2 px-4 bg-white">
-          <Select
-            value={selectedChildId ?? ""}
-            onValueChange={setSelectedChildId}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecciona un niño/a" />
-            </SelectTrigger>
-            <SelectContent>
-              {allChildren.map((child) => (
-                <SelectItem key={child.id} value={child.id}>
-                  {child.firstName} {child.lastName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {isLoadingEvents ? (
+      {isLoading ? (
         <TeacherDashboardSkeleton />
       ) : error ? (
         <div className="rounded-lg border-2 border-dashed border-red-200 bg-red-50 p-12 text-center">
           <p className="text-red-600">{error}</p>
         </div>
-      ) : events.length > 0 ? (
-        <div className="space-y-2 px-4">
-          {events.map((event) => (
-            <EventTimelineItem key={event.id} event={event} />
-          ))}
-        </div>
-      ) : (
+      ) : !hasContent ? (
         <div className="flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-gray-200 bg-white p-12 text-center">
           <FileText className="h-12 w-12 text-shark-gray-300" />
           <h3 className="text-lg font-semibold text-shark-gray-700">
-            No hay eventos este día
+            No hay niños en tus salas
           </h3>
           <p className="text-sm text-shark-gray-500">
-            No se ha registrado ninguna actividad para{" "}
-            {selectedChild?.firstName} en la fecha seleccionada.
+            No se han encontrado salas o niños asignados a tu perfil.
           </p>
         </div>
+      ) : (
+        <>
+          {/* Date Navigator */}
+          <div className="rounded-lg border-b bg-white p-4 mb-2">
+            <div className="flex items-center justify-between gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handlePreviousDay}
+                className="h-10 w-10 shrink-0"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex-1 text-center">
+                <p className="font-semibold capitalize text-shark-gray-900">
+                  {formatDateHeader(selectedDate)}
+                </p>
+                <p className="text-sm text-shark-gray-500">
+                  {format(selectedDate, "d 'de' MMMM 'de' yyyy", {
+                    locale: es,
+                  })}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleNextDay}
+                disabled={isNextDayDisabled}
+                className="h-10 w-10 shrink-0"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Child Selector */}
+          {allChildren.length > 1 && (
+            <div className="mb-2 px-4 bg-white">
+              <Select
+                value={selectedChildId ?? ""}
+                onValueChange={(value) => setSelectedChildId(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona un niño/a" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allChildren.map((child) => (
+                    <SelectItem key={child.id} value={child.id}>
+                      {child.firstName} {child.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Events Timeline */}
+          {events.length > 0 ? (
+            <div className="space-y-2 px-4">
+              {events.map((event) => (
+                <EventTimelineItem key={event.id} event={event} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-gray-200 bg-white p-12 text-center">
+              <FileText className="h-12 w-12 text-shark-gray-300" />
+              <h3 className="text-lg font-semibold text-shark-gray-700">
+                No hay eventos este día
+              </h3>
+              <p className="text-sm text-shark-gray-500">
+                No se ha registrado ninguna actividad para{" "}
+                {selectedChild?.firstName} en la fecha seleccionada.
+              </p>
+            </div>
+          )}
+        </>
       )}
     </>
   );

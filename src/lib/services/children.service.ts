@@ -1,5 +1,5 @@
 import {
-  addDoc,
+  arrayUnion,
   collection,
   doc,
   documentId,
@@ -10,11 +10,12 @@ import {
   Timestamp,
   updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 
 import { db } from "@/config/firebase";
 import { Child, ChildFormData } from "@/lib/types";
-import { sendEmailInvitation } from "@/lib/services";
+import { getUserByEmail, sendEmailInvitation } from "@/lib/services";
 
 const childrenCollection = collection(db, "children");
 
@@ -38,82 +39,93 @@ export const getAllChildren = async (): Promise<Child[]> => {
 };
 
 /**
- * Creates a new child document in Firestore.
+ * Creates a new child and links to parent users, creating user stubs if necessary.
+ * Sends email invitations to new parent users.
  * @param childData The data for the new child.
  * @param adminId The UID of the admin creating the child.
  * @returns The newly created Child object.
  */
-
 export const createChild = async (
   childData: ChildFormData,
   adminId: string
 ): Promise<Child> => {
-  try {
-    if (childData.authorizedEmails && childData.authorizedEmails.length > 0) {
-      console.log(
-        `Validando y enviando invitaciones para ${childData.firstName}...`
-      );
+  const batch = writeBatch(db);
+  const parentUids: string[] = [];
 
-      const emailPromises = childData.authorizedEmails
-        .filter((email) => email.trim() !== "")
-        .map(async (email) => {
-          const response = await sendEmailInvitation({
-            toEmail: email,
-            childName: childData.firstName,
-          });
-          if (!response || response.success === false) {
-            throw new Error(`Fallo al enviar invitación al correo: ${email}`);
-          }
-          return response;
+  // 1. Handle parent invitations and linking
+  if (childData.authorizedEmails && childData.authorizedEmails.length > 0) {
+    for (const email of childData.authorizedEmails) {
+      const normalizedEmail = email.toLowerCase();
+      const existingUser = await getUserByEmail(normalizedEmail);
+
+      if (existingUser) {
+        // User exists: update their roles and children
+        console.log(`Linking child to existing user: ${email}`);
+        const userRef = doc(db, "users", existingUser.uid);
+        batch.update(userRef, {
+          role: arrayUnion("parent"),
+          // childrenIds will be added later with the new child's ID
         });
-
-      // Promise.all se detendrá si alguna promesa es rechazada (falla).
-      await Promise.all(emailPromises);
-      console.log("Todas las invitaciones se enviaron exitosamente.");
+        parentUids.push(existingUser.uid);
+      } else {
+        // User does not exist: create a new user stub
+        console.log(`Creating new parent invite for: ${email}`);
+        const newUserRef = doc(collection(db, "users"));
+        batch.set(newUserRef, {
+          email: normalizedEmail,
+          role: ["parent"],
+          // childrenIds will be added later with the new child's ID
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          createdBy: adminId,
+          updatedBy: adminId,
+        });
+        parentUids.push(newUserRef.id);
+        // We can still send an email invitation
+        await sendEmailInvitation({ toEmail: normalizedEmail });
+      }
     }
-  } catch (error) {
-    // Si algún correo falla, detenemos todo el proceso.
-    console.error(
-      "[children.service] Fallo crítico al enviar correos, no se creará el niño:",
-      error
-    );
-    // Lanzamos un error específico para que el frontend pueda mostrar un mensaje claro.
-    throw new Error(
-      "No se pudo enviar la invitación por correo. Por favor, verifica las direcciones e inténtalo de nuevo."
-    );
   }
 
+  // 2. Create the child document
+  const childRef = doc(collection(db, "children"));
+  const dateOfBirthTimestamp = Timestamp.fromDate(
+    new Date(childData.dateOfBirth)
+  );
+
+  batch.set(childRef, {
+    ...childData,
+    dateOfBirth: dateOfBirthTimestamp,
+    parentIds: parentUids, // Link the UIDs of the parents
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    createdBy: adminId,
+    updatedBy: adminId,
+  });
+
+  // 3. Update all linked parents with the new child's ID
+  for (const uid of parentUids) {
+    const userRef = doc(db, "users", uid);
+    batch.update(userRef, {
+      childrenIds: arrayUnion(childRef.id),
+    });
+  }
+
+  // 4. Commit all operations atomically
   try {
-    const dateOfBirthTimestamp = Timestamp.fromDate(
-      new Date(childData.dateOfBirth)
-    );
-    const docData = {
-      ...childData,
-      dateOfBirth: dateOfBirthTimestamp,
-      parentIds: [],
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      createdBy: adminId,
-      updatedBy: adminId,
-    };
-
-    const childRef = await addDoc(collection(db, "children"), docData);
-
+    await batch.commit();
     return {
       id: childRef.id,
       ...childData,
       dateOfBirth: dateOfBirthTimestamp,
-      parentIds: [],
+      parentIds: parentUids,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as unknown as Child;
-  } catch (dbError) {
-    console.error(
-      "[children.service] Error al crear el niño en la BD después de enviar correos:",
-      dbError
-    );
+  } catch (error) {
+    console.error("[children.service] Error creating child with batch:", error);
     throw new Error(
-      "Se enviaron los correos, pero no se pudo guardar el alumno en la base de datos."
+      "No se pudo crear el alumno y vincular a los padres. La operación fue revertida."
     );
   }
 };

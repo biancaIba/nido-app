@@ -9,6 +9,9 @@ import {
   query,
   where,
   updateDoc,
+  arrayUnion,
+  serverTimestamp,
+  FieldValue,
 } from "firebase/firestore";
 
 import { db } from "@/config";
@@ -54,7 +57,7 @@ export async function getUserById(id: string): Promise<User | null> {
 }
 
 export async function getUserByEmail(email: string): Promise<User | null> {
-  const q = query(usersCollection, where("email", "==", email));
+  const q = query(usersCollection, where("email", "==", email.toLowerCase()));
   const snapshot = await getDocs(q);
 
   if (snapshot.empty) {
@@ -110,74 +113,114 @@ export async function getTeachers(): Promise<User[]> {
 }
 
 /**
- * Creates a new teacher user, saves them to Firestore, and sends an invitation.
- * NOTE: This function assumes you have a backend mechanism to create the user in Firebase Auth.
- * For this MVP, we'll focus on creating the Firestore document and sending the email.
- * The user will complete their registration via the link.
+ * Creates a new teacher user or updates an existing user to have the teacher role.
+ * It checks if a user with the given email already exists.
+ * If yes, it updates the user with the teacher role and profile.
+ * If no, it creates a new user document stub and sends an invitation.
  * @param teacherData The form data for the new teacher.
- * @param adminId The UID of the admin creating the teacher.
- * @returns The newly created User object.
+ * @param adminId The UID of the admin performing the action.
+ * @returns The created or updated User object.
  */
 export const createTeacher = async (
   teacherData: TeacherFormData,
   adminId: string
 ): Promise<User> => {
-  // 1. Enviar invitación por correo PRIMERO
-  try {
-    console.log(`Enviando invitación al maestro ${teacherData.firstName}...`);
-    await sendEmailInvitation({
-      toEmail: teacherData.email,
-    });
-    console.log("Invitación enviada exitosamente.");
-  } catch (error) {
-    console.error("[auth.service] Fallo al enviar correo al maestro:", error);
-    throw new Error(
-      "No se pudo enviar la invitación por correo. Verifica la dirección e inténtalo de nuevo."
+  const normalizedEmail = teacherData.email.toLowerCase();
+  const existingUser = await getUserByEmail(normalizedEmail);
+
+  if (existingUser) {
+    // User already exists, update them
+    console.log(
+      `User with email ${normalizedEmail} already exists. Updating with teacher role.`
     );
-  }
+    const userRef = doc(db, "users", existingUser.uid);
 
-  // 2. Si el correo se envía, crear el documento del usuario en Firestore
-  // Para el MVP, el UID será autogenerado por Firestore, ya que el usuario aún no existe en Auth.
-  // El usuario reclamará este perfil al registrarse con el mismo email.
-  try {
-    const userDocRef = doc(collection(db, "users")); // Genera un ID automático
-
-    const newUser: Omit<User, "uid"> = {
-      email: teacherData.email.toLowerCase(),
-      firstName: teacherData.firstName,
-      lastName: teacherData.lastName,
-      role: ["teacher"],
-
-      phone: teacherData.phone,
-      dateOfBirth: teacherData.dateOfBirth,
-
+    // Prepare the data for the update operation
+    const updateData: { [key: string]: unknown } = {
+      role: arrayUnion("teacher"), // Atomically adds 'teacher' to the array if it's not there
       teacherProfile: {
+        ...(existingUser.teacherProfile || {}),
         shift: teacherData.shift,
         employeeId: teacherData.employeeId,
         classroomIds: teacherData.classroomIds,
       },
-
-      createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
-      deletedAt: null,
-      createdBy: adminId,
       updatedBy: adminId,
-      deletedBy: null,
     };
 
-    await setDoc(userDocRef, newUser);
+    // Conditionally add optional fields from the form to the update payload
+    if (teacherData.phone) {
+      updateData.phone = teacherData.phone;
+    }
+    if (teacherData.dateOfBirth) {
+      updateData.dateOfBirth = teacherData.dateOfBirth;
+    }
 
-    return {
-      ...newUser,
-      uid: userDocRef.id, // Usamos el ID del documento como UID temporal
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as unknown as User;
-  } catch (dbError) {
-    console.error("[auth.service] Error al crear el maestro en BD:", dbError);
-    throw new Error(
-      "Se envió el correo, pero no se pudo guardar el maestro en la base de datos."
+    await updateDoc(userRef, updateData);
+
+    const updatedUser = await getUserById(existingUser.uid);
+    return updatedUser!; // We know the user exists
+  } else {
+    // User does not exist, create a new one and send invitation
+    console.log(
+      `No existing user found. Creating new teacher invite for ${normalizedEmail}.`
     );
+    try {
+      await sendEmailInvitation({ toEmail: normalizedEmail });
+    } catch (error) {
+      console.error("[auth.service] Failed to send teacher invitation:", error);
+      throw new Error(
+        "No se pudo enviar la invitación por correo. Verifica la dirección e inténtalo de nuevo."
+      );
+    }
+
+    try {
+      const userDocRef = doc(collection(db, "users"));
+
+      const newUserPayload: Omit<User, "uid" | "createdAt" | "updatedAt"> & {
+        createdAt: FieldValue;
+        updatedAt: FieldValue;
+      } = {
+        email: normalizedEmail,
+        firstName: teacherData.firstName,
+        lastName: teacherData.lastName,
+        role: ["teacher"],
+
+        teacherProfile: {
+          shift: teacherData.shift,
+          employeeId: teacherData.employeeId,
+          classroomIds: teacherData.classroomIds,
+        },
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: adminId,
+        updatedBy: adminId,
+        deletedAt: null,
+        deletedBy: null,
+      };
+
+      // Conditionally add optional fields to avoid 'undefined' errors
+      if (teacherData.phone) newUserPayload.phone = teacherData.phone;
+      if (teacherData.dateOfBirth)
+        newUserPayload.dateOfBirth = teacherData.dateOfBirth;
+
+      await setDoc(userDocRef, newUserPayload);
+
+      return {
+        uid: userDocRef.id,
+        ...newUserPayload,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      } as User;
+    } catch (dbError) {
+      console.error(
+        "[auth.service] Error creating teacher in DB after sending email:",
+        dbError
+      );
+      throw new Error(
+        "Se envió el correo, pero no se pudo guardar el maestro en la base de datos."
+      );
+    }
   }
 };
 
@@ -188,30 +231,36 @@ export const updateTeacher = async (
 ): Promise<void> => {
   try {
     const teacherRef = doc(db, "users", teacherId);
+    const userSnap = await getDoc(teacherRef);
+    if (!userSnap.exists()) throw new Error("Teacher not found");
 
-    const updateData: Partial<User> = {
-      firstName: teacherData.firstName,
-      lastName: teacherData.lastName,
+    const existingUser = userSnap.data() as User;
+
+    // Prepare the base update data
+    const updateData: { [key: string]: unknown } = {
       updatedAt: Timestamp.now(),
       updatedBy: adminId,
     };
 
+    // Selectively add fields to update to avoid overwriting with undefined
+    if (teacherData.firstName) updateData.firstName = teacherData.firstName;
+    if (teacherData.lastName) updateData.lastName = teacherData.lastName;
     if (teacherData.phone) updateData.phone = teacherData.phone;
     if (teacherData.dateOfBirth)
       updateData.dateOfBirth = teacherData.dateOfBirth;
-    if (teacherData.avatarSeed) updateData.avatarSeed = teacherData.avatarSeed;
 
-    if (
-      teacherData.shift ||
-      teacherData.employeeId ||
-      teacherData.classroomIds
-    ) {
-      updateData.teacherProfile = {
-        shift: teacherData.shift,
+    // Merge teacherProfile instead of overwriting
+    const newTeacherProfile = {
+      ...existingUser.teacherProfile,
+      ...(teacherData.shift !== undefined && { shift: teacherData.shift }),
+      ...(teacherData.employeeId !== undefined && {
         employeeId: teacherData.employeeId,
-        classroomIds: teacherData.classroomIds || [],
-      };
-    }
+      }),
+      ...(teacherData.classroomIds && {
+        classroomIds: teacherData.classroomIds,
+      }),
+    };
+    updateData.teacherProfile = newTeacherProfile;
 
     await updateDoc(teacherRef, updateData);
   } catch (error) {

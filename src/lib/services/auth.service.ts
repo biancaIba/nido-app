@@ -136,7 +136,8 @@ export const createTeacher = async (
     const userRef = doc(db, "users", existingUser.uid);
 
     // Prepare the data for the update operation
-    const updateData: { [key: string]: unknown } = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: { [key: string]: any } = {
       role: arrayUnion("teacher"), // Atomically adds 'teacher' to the array if it's not there
       teacherProfile: {
         ...(existingUser.teacherProfile || {}),
@@ -236,8 +237,9 @@ export const updateTeacher = async (
 
     const existingUser = userSnap.data() as User;
 
-    // Prepare the base update data
-    const updateData: { [key: string]: unknown } = {
+    // Prepare the base update data by letting TypeScript infer the type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: { [key: string]: any } = {
       updatedAt: Timestamp.now(),
       updatedBy: adminId,
     };

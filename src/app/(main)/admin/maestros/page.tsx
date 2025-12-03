@@ -1,19 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Edit, Plus } from "lucide-react";
+import { Edit, Plus, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 
 import { User, Classroom } from "@/lib/types";
-import { getTeachers, getClassrooms } from "@/lib/services"; // Usar getTeachers
-import { AddEditTeacher, UserAvatar } from "@/components/features"; // Importar AddEditTeacher
-import { Button } from "@/components/ui";
+import { getTeachers, getClassrooms } from "@/lib/services";
+import {
+  AddEditTeacher,
+  UserAvatar,
+  ManagementListSkeleton,
+} from "@/components/features";
+import { Button, EmptyState } from "@/components/ui";
 
 export default function MaestrosPage() {
   const [teachers, setTeachers] = useState<User[]>([]);
-  const [classrooms, setClassrooms] = useState<Classroom[]>([]); // Necesitamos las salas para el formulario
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingTeacher, setIsAddingTeacher] = useState(false);
+  const [editingTeacher, setEditingTeacher] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,26 +41,33 @@ export default function MaestrosPage() {
     fetchData();
   }, []);
 
-  const handleSaveSuccess = (newTeacher: User) => {
-    setTeachers((prev) => [...prev, newTeacher]);
+  const handleSaveSuccess = (savedTeacher: User) => {
+    setTeachers((prev) => {
+      const exists = prev.some((t) => t.uid === savedTeacher.uid);
+      if (exists) {
+        return prev.map((t) => (t.uid === savedTeacher.uid ? savedTeacher : t));
+      }
+      return [...prev, savedTeacher];
+    });
     setIsAddingTeacher(false);
+    setEditingTeacher(null);
   };
 
-  if (isAddingTeacher) {
-    return (
-      <AddEditTeacher
-        onBack={() => setIsAddingTeacher(false)}
-        onSaveSuccess={handleSaveSuccess}
-        classrooms={classrooms} // Pasar las salas al formulario
-      />
-    );
+  if (isLoading) {
+    return <ManagementListSkeleton />;
   }
 
-  if (isLoading) {
+  if (isAddingTeacher || editingTeacher) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <p>Cargando maestros...</p>
-      </div>
+      <AddEditTeacher
+        onBack={() => {
+          setIsAddingTeacher(false);
+          setEditingTeacher(null);
+        }}
+        onSaveSuccess={handleSaveSuccess}
+        classrooms={classrooms} // Pasar las salas al formulario
+        initialData={editingTeacher || undefined}
+      />
     );
   }
 
@@ -80,20 +92,18 @@ export default function MaestrosPage() {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => {
-                    /* TODO: Edit */
-                  }}
-                >
+                <button onClick={() => setEditingTeacher(teacher)}>
                   <Edit className="h-5 w-5 text-shark-gray-400" />
                 </button>
               </div>
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500">
-            No hay maestros registrados.
-          </p>
+          <EmptyState
+            title="No hay maestros registrados"
+            description="Invita a los maestros para que puedan gestionar sus salas y actividades."
+            icon={GraduationCap}
+          />
         )}
       </div>
 

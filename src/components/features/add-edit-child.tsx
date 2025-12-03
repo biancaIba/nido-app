@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { Timestamp } from "firebase/firestore";
 
 import { useAuth } from "@/lib/hooks";
-import { createChild } from "@/lib/services";
+import { createChild, updateChild } from "@/lib/services";
 import { generateAvatarUrl, generateRandomSeed } from "@/lib/utils";
 import { Classroom, ChildFormData, Child } from "@/lib/types";
 import {
@@ -25,12 +26,14 @@ interface AddEditChildProps {
   onBack: () => void;
   onSaveSuccess: (newChild: Child) => void;
   classrooms: Classroom[];
+  initialData?: Child;
 }
 
 export function AddEditChild({
   onBack,
   onSaveSuccess,
   classrooms,
+  initialData,
 }: AddEditChildProps) {
   const { user } = useAuth();
   const [formData, setFormData] = useState<ChildFormData>({
@@ -43,11 +46,26 @@ export function AddEditChild({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        firstName: initialData.firstName,
+        lastName: initialData.lastName,
+        dateOfBirth: initialData.dateOfBirth
+          ? initialData.dateOfBirth.toDate().toISOString().split("T")[0]
+          : "",
+        classroomId: initialData.classroomId || "",
+        avatarSeed: initialData.avatarSeed || "",
+        authorizedEmails: initialData.authorizedEmails || [""],
+      });
+    }
+  }, [initialData]);
+
   const avatarSeedOptions = useMemo(() => {
     return Array.from({ length: 6 }, () => generateRandomSeed());
   }, []);
 
-  if (!formData.avatarSeed && avatarSeedOptions.length > 0) {
+  if (!formData.avatarSeed && avatarSeedOptions.length > 0 && !initialData) {
     setFormData((prev) => ({ ...prev, avatarSeed: avatarSeedOptions[0] }));
   }
 
@@ -101,11 +119,25 @@ export function AddEditChild({
 
     setIsSubmitting(true);
     try {
-      const newChild = await createChild(formData, user.uid);
-      toast.success(`Alumno "${newChild.firstName}" creado exitosamente.`);
-      onSaveSuccess(newChild);
+      if (initialData) {
+        await updateChild(initialData.id, formData, user.uid);
+        toast.success(
+          `Alumno "${formData.firstName}" actualizado exitosamente.`
+        );
+
+        const updatedChild: Child = {
+          ...initialData,
+          ...formData,
+          dateOfBirth: Timestamp.fromDate(new Date(formData.dateOfBirth)),
+        };
+        onSaveSuccess(updatedChild);
+      } else {
+        const newChild = await createChild(formData, user.uid);
+        toast.success(`Alumno "${newChild.firstName}" creado exitosamente.`);
+        onSaveSuccess(newChild);
+      }
     } catch (error) {
-      console.error("Error creating child:", error);
+      console.error("Error saving child:", error);
       toast.error("No se pudo guardar el alumno.");
     } finally {
       setIsSubmitting(false);

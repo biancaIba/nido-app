@@ -13,7 +13,12 @@ import {
   getChildrenByClassroomId,
   createEvents,
 } from "@/lib/services";
-import { ChildCard, EventFormPayload, EventModal } from "@/components/features";
+import {
+  ChildCard,
+  EventFormPayload,
+  EventModal,
+  EventRegistrationFormSkeleton,
+} from "@/components/features";
 import {
   Button,
   Select,
@@ -66,9 +71,8 @@ export default function TeacherDashboard() {
       try {
         setIsLoading(true);
         setError(null);
-        const fetchedChildren = await getChildrenByClassroomId(
-          selectedClassroom
-        );
+        const fetchedChildren =
+          await getChildrenByClassroomId(selectedClassroom);
         setChildren(fetchedChildren);
       } catch (error) {
         setError("No se pudieron cargar los niños.");
@@ -173,9 +177,8 @@ export default function TeacherDashboard() {
 
         // Refresh the children list to show updated lastEvent
         if (selectedClassroom) {
-          const fetchedChildren = await getChildrenByClassroomId(
-            selectedClassroom
-          );
+          const fetchedChildren =
+            await getChildrenByClassroomId(selectedClassroom);
           setChildren(fetchedChildren);
         }
       } else {
@@ -187,11 +190,7 @@ export default function TeacherDashboard() {
   };
 
   if (isLoading && classrooms.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-shark-gray-500">Cargando...</p>
-      </div>
-    );
+    return <EventRegistrationFormSkeleton />;
   }
 
   if (error && classrooms.length === 0) {

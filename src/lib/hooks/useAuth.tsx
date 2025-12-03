@@ -16,11 +16,16 @@ import {
   createUserWithEmailAndPassword,
   User as FirebaseAuthUser,
 } from "firebase/auth";
-import { Loader2 } from "lucide-react";
+import { doc, updateDoc } from "firebase/firestore";
 
-import { auth } from "@/config";
-import { getUserById } from "@/lib/services";
-import { User as AppUser } from "@/lib/types";
+import { auth, db } from "@/config";
+import {
+  getUserById,
+  getUserByEmail,
+  migrateUser,
+  createUserInDb,
+} from "@/lib/services";
+import { User as AppUser, UserRole } from "@/lib/types";
 
 interface AuthContextType {
   user: AppUser | null;
@@ -54,15 +59,73 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const unsubscribe = onAuthStateChanged(
       auth,
       async (firebaseUser: FirebaseAuthUser | null) => {
-        if (firebaseUser) {
-          // User is signed in, now fetch their full profile from Firestore.
-          const userProfile = await getUserById(firebaseUser.uid);
-          setUser(userProfile);
-        } else {
-          // User is signed out.
+        try {
+          if (firebaseUser) {
+            // User is signed in, now fetch their full profile from Firestore.
+            let userProfile = await getUserById(firebaseUser.uid);
+
+            if (!userProfile && firebaseUser.email) {
+              // If user doesn't exist by UID, check if they were invited (exist by email)
+              const existingUser = await getUserByEmail(firebaseUser.email);
+
+              if (existingUser) {
+                // Migrate invited user to use Auth UID
+                userProfile = await migrateUser(
+                  existingUser.uid,
+                  firebaseUser.uid,
+                  existingUser
+                );
+              } else {
+                // Create new user
+                // Hardcoded check for the main admin user (for demo purposes)
+                const isAdminEmail =
+                  firebaseUser.email?.toLowerCase() === "biancaiba11@gmail.com";
+                const role: UserRole[] = isAdminEmail ? ["admin"] : ["parent"];
+
+                const names = (firebaseUser.displayName || "").split(" ");
+                const firstName = names[0] || "";
+                const lastName = names.slice(1).join(" ") || "";
+
+                const newUser = {
+                  email: firebaseUser.email,
+                  firstName,
+                  lastName,
+                  role,
+                  photoURL: firebaseUser.photoURL || undefined,
+                };
+
+                // Create in DB
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                await createUserInDb(firebaseUser.uid, newUser as any);
+                userProfile = await getUserById(firebaseUser.uid);
+              }
+            }
+
+            // Sync photoURL if it has changed
+            if (userProfile && firebaseUser.photoURL !== userProfile.photoURL) {
+              await updateDoc(doc(db, "users", firebaseUser.uid), {
+                photoURL: firebaseUser.photoURL || null,
+              });
+              userProfile = {
+                ...userProfile,
+                photoURL: firebaseUser.photoURL || undefined,
+              };
+            }
+
+            setUser(userProfile);
+          } else {
+            // User is signed out.
+            setUser(null);
+          }
+        } catch (error) {
+          console.error("Error handling auth state change:", error);
+          setAuthError(
+            "Error al iniciar sesión. Por favor verifica tu conexión o permisos."
+          );
           setUser(null);
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
@@ -119,9 +182,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           password
         );
 
-        // TODO: Aquí es un buen lugar para agregar el usuario a Firestore
-        // The onAuthStateChanged listener will fire, but the user might not be in the DB yet.
-        // We need to call createUserInDb from the sign-up page *after* this function succeeds.
+        // User creation is now handled in onAuthStateChanged
 
         setAuthError(null);
         return userCredential.user;
@@ -152,15 +213,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     authError,
     clearAuthError,
   };
-
-  // Show a global loader while we are verifying the user session.
-  if (loading) {
-    return (
-      <div className="flex flex-col h-screen w-full items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-shark-gray-400" />
-      </div>
-    );
-  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

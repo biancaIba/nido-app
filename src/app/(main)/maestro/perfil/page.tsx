@@ -11,15 +11,15 @@ import {
   IdCard,
   Users,
   UserCircle,
-  Loader2,
   LogOut,
 } from "lucide-react";
 
 import { Classroom } from "@/lib/types";
 import { useAuth } from "@/lib/hooks";
 import { getClassroomById } from "@/lib/services";
+import { formatDateOfBirth } from "@/lib/utils";
 import { Badge, Button } from "@/components/ui";
-import { UserAvatar } from "@/components/features";
+import { UserAvatar, ProfileFormSkeleton } from "@/components/features";
 
 export default function MaestroPerfil() {
   const { user, loading, logOut } = useAuth();
@@ -48,11 +48,7 @@ export default function MaestroPerfil() {
   }, [user]);
 
   if (loading) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-      </div>
-    );
+    return <ProfileFormSkeleton />;
   }
 
   if (!user) {
@@ -67,6 +63,7 @@ export default function MaestroPerfil() {
   const memberSince = user.createdAt
     ? format(user.createdAt.toDate(), "yyyy")
     : "";
+  const formattedDateOfBirth = formatDateOfBirth(user.dateOfBirth);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -102,6 +99,7 @@ export default function MaestroPerfil() {
                     onClick={() => logOut()}
                     variant="destructive"
                     size="xs"
+                    className="text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                   >
                     <LogOut className="h-4 w-4" />
                     Cerrar Sesión
@@ -156,7 +154,7 @@ export default function MaestroPerfil() {
                     <p className="text-xs text-gray-500 mb-1">
                       Fecha de Nacimiento
                     </p>
-                    <p className="text-gray-900">{user?.dateOfBirth}</p>
+                    <p className="text-gray-900">{formattedDateOfBirth}</p>
                   </div>
                 </div>
               </div>
@@ -234,17 +232,6 @@ export default function MaestroPerfil() {
                 </p>
               </div>
             </div>
-          </div>
-
-          {/* Logout Button */}
-          <div className="md:mb-2">
-            <button
-              onClick={() => logOut()}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-              Cerrar Sesión
-            </button>
           </div>
         </div>
       </main>

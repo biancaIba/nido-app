@@ -2,12 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Baby,
-  GraduationCap,
-  School,
-  UsersRound as UsersRoundIcon,
-} from "lucide-react";
+import { Baby, GraduationCap, School, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { RoleGuard } from "@/components/layout";
@@ -16,7 +11,7 @@ const navItems = [
   { href: "/admin/salas", label: "Salas", icon: School },
   { href: "/admin/ninios", label: "Niños", icon: Baby },
   { href: "/admin/maestros", label: "Maestros", icon: GraduationCap },
-  { href: "/admin/usuarios", label: "Usuarios", icon: UsersRoundIcon },
+  { href: "/admin/perfil", label: "Perfil", icon: User },
 ];
 
 export default function AdminLayout({

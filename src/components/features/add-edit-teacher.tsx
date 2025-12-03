@@ -1,38 +1,32 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { Timestamp } from "firebase/firestore";
 
 import { useAuth } from "@/lib/hooks";
-import { createTeacher } from "@/lib/services";
-import { generateAvatarUrl, generateRandomSeed } from "@/lib/utils";
+import { createTeacher, updateTeacher } from "@/lib/services";
 import { Classroom, TeacherFormData, User } from "@/lib/types";
-import {
-  Button,
-  Input,
-  Avatar,
-  AvatarImage,
-  AvatarFallback,
-  MultiSelect,
-} from "@/components/ui";
+import { Button, Input, MultiSelect } from "@/components/ui";
 
 interface AddEditTeacherProps {
   onBack: () => void;
   onSaveSuccess: (newTeacher: User) => void;
   classrooms: Classroom[];
+  initialData?: User;
 }
 
 export function AddEditTeacher({
   onBack,
   onSaveSuccess,
   classrooms,
+  initialData,
 }: AddEditTeacherProps) {
   const { user } = useAuth();
   const [formData, setFormData] = useState<TeacherFormData>({
     firstName: "",
     lastName: "",
     email: "",
-    avatarSeed: "",
     classroomIds: [],
     phone: "",
     dateOfBirth: "",
@@ -41,14 +35,29 @@ export function AddEditTeacher({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const avatarSeedOptions = useMemo(
-    () => Array.from({ length: 6 }, () => generateRandomSeed()),
-    []
-  );
+  useEffect(() => {
+    if (initialData) {
+      let dob = "";
+      if (initialData.dateOfBirth) {
+        if (initialData.dateOfBirth instanceof Timestamp) {
+          dob = initialData.dateOfBirth.toDate().toISOString().split("T")[0];
+        } else if (typeof initialData.dateOfBirth === "string") {
+          dob = initialData.dateOfBirth;
+        }
+      }
 
-  if (!formData.avatarSeed && avatarSeedOptions.length > 0) {
-    setFormData((prev) => ({ ...prev, avatarSeed: avatarSeedOptions[0] }));
-  }
+      setFormData({
+        firstName: initialData.firstName,
+        lastName: initialData.lastName,
+        email: initialData.email,
+        classroomIds: initialData.teacherProfile?.classroomIds || [],
+        phone: initialData.phone || "",
+        dateOfBirth: dob,
+        shift: initialData.teacherProfile?.shift || "",
+        employeeId: initialData.teacherProfile?.employeeId || "",
+      });
+    }
+  }, [initialData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -77,11 +86,19 @@ export function AddEditTeacher({
 
     setIsSubmitting(true);
     try {
-      const newTeacher = await createTeacher(formData, user.uid);
-      toast.success(`Maestro "${newTeacher.firstName}" creado exitosamente.`);
-      onSaveSuccess(newTeacher);
+      if (initialData) {
+        await updateTeacher(initialData.uid, formData, user.uid);
+        toast.success(
+          `Maestro "${formData.firstName}" actualizado exitosamente.`
+        );
+        onSaveSuccess({ ...initialData, ...formData });
+      } else {
+        const newTeacher = await createTeacher(formData, user.uid);
+        toast.success(`Maestro "${newTeacher.firstName}" creado exitosamente.`);
+        onSaveSuccess(newTeacher);
+      }
     } catch (error) {
-      console.error("Error creating teacher:", error);
+      console.error("Error saving teacher:", error);
       toast.error("No se pudo guardar el maestro.");
     } finally {
       setIsSubmitting(false);
@@ -91,50 +108,6 @@ export function AddEditTeacher({
   return (
     <div className="min-h-screen bg-white">
       <div className="space-y-6 p-4 pb-24">
-        {/* Avatar Selection (igual que en add-edit-child) */}
-        <div>
-          <div className="flex justify-center">
-            <Avatar className="h-24 w-24 border-4 border-white shadow-md">
-              <AvatarImage
-                src={
-                  formData.avatarSeed
-                    ? generateAvatarUrl(formData.avatarSeed)
-                    : undefined
-                }
-                alt="Avatar seleccionado"
-              />
-              <AvatarFallback className="text-3xl">
-                {formData.firstName?.charAt(0).toUpperCase() ||
-                  formData.lastName?.charAt(0).toUpperCase() ||
-                  "A"}
-              </AvatarFallback>
-            </Avatar>
-          </div>
-          <div className="grid grid-cols-6 gap-2 pt-2">
-            {avatarSeedOptions.map((seed) => (
-              <Button
-                key={seed}
-                variant="ghost"
-                onClick={() =>
-                  setFormData((prev) => ({ ...prev, avatarSeed: seed }))
-                }
-                className={`rounded-full transition-all ${
-                  formData.avatarSeed === seed
-                    ? "ring-2 ring-lightning-yellow-600/60 ring-offset-2"
-                    : "hover:scale-105"
-                }`}
-              >
-                <Avatar className="h-10 w-10 border-2 border-white shadow-md">
-                  <AvatarImage
-                    src={generateAvatarUrl(seed)}
-                    alt="Opción de avatar"
-                  />
-                </Avatar>
-              </Button>
-            ))}
-          </div>
-        </div>
-
         {/* Form Fields */}
         <div>
           <h3 className="text-shark-gray-900 mb-2">Nombre</h3>
@@ -229,7 +202,7 @@ export function AddEditTeacher({
         </div>
 
         <div>
-          <h3 className="text-shark-gray-900 mb-2">Turno</h3>
+          <h3 className="text-shark-gray-900 mb-2">Nro Empleado</h3>
           <Input
             id="employeeId"
             name="employeeId"

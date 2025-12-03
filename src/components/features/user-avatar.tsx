@@ -1,10 +1,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui";
-import { User } from "@/lib/types";
-import { cn, generateAvatarUrl } from "@/lib/utils";
 import { cva } from "class-variance-authority";
 
+import { Child, User } from "@/lib/types";
+import { cn, generateAvatarUrl } from "@/lib/utils";
+
 interface UserAvatarProps {
-  user: User;
+  user: User | Child;
   size?: "sm" | "lg";
 }
 
@@ -22,6 +23,16 @@ export function UserAvatar({ user, size }: UserAvatarProps) {
     },
   });
 
+  // Use a type guard to determine the correct properties
+  let imageUrl: string | undefined;
+  if ("avatarSeed" in user) {
+    // This is a Child object
+    imageUrl = generateAvatarUrl(user.avatarSeed);
+  } else {
+    // This is a User object
+    imageUrl = user.photoURL;
+  }
+
   return (
     <Avatar
       className={cn(
@@ -29,13 +40,10 @@ export function UserAvatar({ user, size }: UserAvatarProps) {
         "border-4 bg-lightning-yellow-600/85 border-white shadow-md"
       )}
     >
-      <AvatarImage
-        src={user.avatarSeed ? generateAvatarUrl(user.avatarSeed) : undefined}
-        alt={user.firstName}
-      />
+      <AvatarImage src={imageUrl} alt={user.firstName} />
       <AvatarFallback className={cn("text-white text-lg")}>
         {user.firstName
-          .split(" ")
+          ?.split(" ")
           .map((n) => n[0])
           .join("")
           .toUpperCase()}

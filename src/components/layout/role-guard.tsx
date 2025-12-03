@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
@@ -15,6 +16,21 @@ export function RoleGuard({ children, requiredRole }: RoleGuardProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.replace("/ingresar");
+      } else if (!user.role.includes(requiredRole)) {
+        const safePath = user.role.includes("admin")
+          ? "/admin"
+          : user.role.includes("teacher")
+            ? "/maestro/eventos"
+            : "/tutor/bitacora";
+        router.replace(safePath);
+      }
+    }
+  }, [user, loading, requiredRole, router]);
+
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
@@ -23,22 +39,8 @@ export function RoleGuard({ children, requiredRole }: RoleGuardProps) {
     );
   }
 
-  if (!user) {
-    // If loading is finished and there's no user, redirect to sign-in.
-    router.replace("/ingresar");
-    return null; // Return null to prevent rendering children
-  }
-
-  if (!user.role.includes(requiredRole)) {
-    // If user does not have the required role, redirect to a safe page.
-    // We can determine a safe default route based on their primary role.
-    const safePath = user.role.includes("admin")
-      ? "/admin"
-      : user.role.includes("teacher")
-      ? "/maestro"
-      : "/tutor";
-    router.replace(safePath);
-    return null; // Return null to prevent rendering children
+  if (!user || !user.role.includes(requiredRole)) {
+    return null;
   }
 
   // If user is authenticated and has the required role, render the children.

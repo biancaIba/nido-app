@@ -6,6 +6,7 @@ import {
   getDocs,
   query,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
 
 import { db } from "@/config/firebase";
@@ -90,5 +91,23 @@ export const getClassroomById = async (
   } catch (error) {
     console.error("[classroom.service] Error getting classroom by ID: ", error);
     throw new Error("No se pudo obtener la información de la sala.");
+  }
+};
+
+export const updateClassroom = async (
+  classroomId: string,
+  name: string,
+  teacherId: string
+): Promise<void> => {
+  try {
+    const classroomRef = doc(db, "classrooms", classroomId);
+    await updateDoc(classroomRef, {
+      name,
+      updatedAt: serverTimestamp(),
+      updatedBy: teacherId,
+    });
+  } catch (error) {
+    console.error("[classroom.service] Error updating classroom: ", error);
+    throw new Error("No se pudo actualizar la sala.");
   }
 };

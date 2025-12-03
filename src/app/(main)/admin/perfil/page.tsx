@@ -1,13 +1,13 @@
 "use client";
 
-import { Mail, Phone, Calendar, UserCircle, LogOut } from "lucide-react";
+import { format } from "date-fns";
+import { Mail, Calendar, UserCircle, LogOut } from "lucide-react";
 
 import { useAuth } from "@/lib/hooks";
-import { formatDateOfBirth } from "@/lib/utils";
 import { Badge, Button } from "@/components/ui";
 import { UserAvatar, ProfileFormSkeleton } from "@/components/features";
 
-export default function TutorPerfil() {
+export default function AdminPerfil() {
   const { user, loading, logOut } = useAuth();
 
   if (loading) {
@@ -25,8 +25,9 @@ export default function TutorPerfil() {
   }
 
   const fullName = `${user.firstName} ${user.lastName}`;
-
-  const formattedDateOfBirth = formatDateOfBirth(user.dateOfBirth);
+  const memberSince = user.createdAt
+    ? format(user.createdAt.toDate(), "yyyy")
+    : "";
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -51,7 +52,7 @@ export default function TutorPerfil() {
                 <div className="flex-1 text-center md:text-left md:ml-4 md:mb-2">
                   <h1 className="text-gray-900 mb-2">{fullName}</h1>
                   <div className="flex items-center justify-center md:justify-start gap-3">
-                    <Badge variant="purple">Tutor/a</Badge>
+                    <Badge variant="purple">Administrador</Badge>
                     <Badge variant="green">Activo</Badge>
                   </div>
                 </div>
@@ -96,30 +97,24 @@ export default function TutorPerfil() {
                     <p className="text-gray-900 break-all">{user.email}</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
 
-                {/* Phone */}
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 mt-0.5">
-                    <Phone className="h-5 w-5 text-gray-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500 mb-1">Teléfono</p>
-                    <p className="text-gray-900">{user?.phone}</p>
-                  </div>
-                </div>
-
-                {/* Date of Birth */}
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 mt-0.5">
-                    <Calendar className="h-5 w-5 text-gray-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500 mb-1">
-                      Fecha de Nacimiento
-                    </p>
-                    <p className="text-gray-900">{formattedDateOfBirth}</p>
-                  </div>
-                </div>
+          {/* Additional Info Section (Optional) */}
+          <div className="mt-6 bg-lightning-yellow-500/5 rounded-2xl p-6 border border-lightning-yellow-500/10">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-lg bg-lightning-yellow-500/10 flex items-center justify-center shrink-0">
+                <Calendar className="h-5 w-5 text-lightning-yellow-500" />
+              </div>
+              <div>
+                <h3 className="text-gray-900 mb-1">
+                  Miembro desde {memberSince}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Has estado brindando cuidado excepcional a nuestros pequeños
+                  durante este tiempo. ¡Gracias por tu dedicación!
+                </p>
               </div>
             </div>
           </div>

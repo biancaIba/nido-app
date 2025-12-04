@@ -5,7 +5,7 @@ export * from "./event-modal";
 export * from "./child-card";
 export * from "./event-timeline-item";
 export * from "./parent-invitation-email";
-export * from "./teacher-invitation-name";
+export * from "./teacher-invitation-email";
 export * from "./skeletons/teacher-dashboard-skeleton";
 export * from "./skeletons/event-timeline-skeleton";
 export * from "./skeletons/event-registration-form-skeleton";

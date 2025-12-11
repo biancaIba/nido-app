@@ -8,7 +8,6 @@ import {
   query,
   serverTimestamp,
   Timestamp,
-  updateDoc,
   where,
   writeBatch,
 } from "firebase/firestore";
@@ -82,7 +81,10 @@ export const createChild = async (
         });
         parentUids.push(newUserRef.id);
         // We can still send an email invitation
-        await sendEmailInvitation({ toEmail: normalizedEmail });
+        await sendEmailInvitation({
+          childName: childData.firstName,
+          toEmail: normalizedEmail,
+        });
       }
     }
   }
@@ -135,8 +137,63 @@ export const updateChild = async (
   childData: Partial<ChildFormData>,
   adminId: string
 ): Promise<void> => {
+  const batch = writeBatch(db);
+
   try {
     const childRef = doc(db, "children", childId);
+    const childSnap = await getDoc(childRef);
+
+    if (!childSnap.exists()) {
+      throw new Error("El alumno no existe.");
+    }
+
+    const currentChildData = childSnap.data() as Child;
+    const currentEmails = currentChildData.authorizedEmails || [];
+    const newEmails = childData.authorizedEmails || [];
+
+    // Identify newly added emails
+    const addedEmails = newEmails.filter(
+      (email) => !currentEmails.includes(email)
+    );
+
+    const newParentUids: string[] = [];
+
+    // Process new emails
+    for (const email of addedEmails) {
+      const normalizedEmail = email.toLowerCase();
+      const existingUser = await getUserByEmail(normalizedEmail);
+
+      if (existingUser) {
+        // User exists: update their roles and children
+        console.log(`Linking child to existing user: ${email}`);
+        const userRef = doc(db, "users", existingUser.uid);
+        batch.update(userRef, {
+          role: arrayUnion("parent"),
+          childrenIds: arrayUnion(childId),
+        });
+        newParentUids.push(existingUser.uid);
+      } else {
+        // User does not exist: create a new user stub
+        console.log(`Creating new parent invite for: ${email}`);
+        const newUserRef = doc(collection(db, "users"));
+        batch.set(newUserRef, {
+          email: normalizedEmail,
+          role: ["parent"],
+          childrenIds: [childId],
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          createdBy: adminId,
+          updatedBy: adminId,
+        });
+        newParentUids.push(newUserRef.id);
+
+        // Send invitarion
+        await sendEmailInvitation({
+          childName: childData.firstName || currentChildData.firstName,
+          toEmail: normalizedEmail,
+        });
+      }
+    }
 
     const { dateOfBirth, ...otherData } = childData;
     const updateData: Partial<Child> = {
@@ -149,7 +206,13 @@ export const updateChild = async (
       updateData.dateOfBirth = Timestamp.fromDate(new Date(dateOfBirth));
     }
 
-    await updateDoc(childRef, updateData);
+    if (newParentUids.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (updateData as any).parentIds = arrayUnion(...newParentUids);
+    }
+
+    batch.update(childRef, updateData);
+    await batch.commit();
   } catch (error) {
     console.error("[children.service] Error updating child: ", error);
     throw new Error("No se pudo actualizar el alumno.");

@@ -244,6 +244,26 @@ export const updateTeacher = async (
       updatedBy: adminId,
     };
 
+    // Handle email change and invitation
+    if (
+      teacherData.email &&
+      teacherData.email.toLowerCase() !== existingUser.email.toLowerCase()
+    ) {
+      const normalizedEmail = teacherData.email.toLowerCase();
+      const existingEmailUser = await getUserByEmail(normalizedEmail);
+
+      if (!existingEmailUser) {
+        // New email is not registered, send invitation
+        console.log(`Email changed to ${normalizedEmail}. Sending invitation.`);
+        await sendEmailInvitation({ toEmail: normalizedEmail });
+      } else {
+        console.log(
+          `Email changed to ${normalizedEmail}. User already exists, skipping invitation.`
+        );
+      }
+      updateData.email = normalizedEmail;
+    }
+
     // Selectively add fields to update to avoid overwriting with undefined
     if (teacherData.firstName) updateData.firstName = teacherData.firstName;
     if (teacherData.lastName) updateData.lastName = teacherData.lastName;

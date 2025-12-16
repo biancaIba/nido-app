@@ -22,7 +22,9 @@ export default function TutorLayout({
   return (
     <RoleGuard requiredRole="parent">
       <div className="flex min-h-screen flex-col">
-        <main className="flex-1 bg-shark-gray-50 pb-20">{children}</main>
+        <main className="flex-1 bg-shark-gray-50 pb-20 overflow-y-auto no-scrollbar">
+          {children}
+        </main>
         {/* Bottom Navigation */}
         <div className="fixed bottom-0 left-0 right-0 border-t bg-white shadow-lg">
           <div className="flex items-center justify-around py-3">

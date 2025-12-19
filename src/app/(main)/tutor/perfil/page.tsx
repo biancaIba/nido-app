@@ -24,7 +24,7 @@ export default function TutorPerfil() {
     );
   }
 
-  const fullName = `${user.firstName} ${user.lastName}`;
+  const fullName = `${user?.firstName} ${user?.lastName}`;
 
   const formattedDateOfBirth = formatDateOfBirth(user.dateOfBirth);
 
